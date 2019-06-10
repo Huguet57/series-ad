@@ -13,4 +13,71 @@ fig_width: 5
 fig_height: 3
 ---
 
+# Introducció
 
+# Representació gràfica de les dades
+
+Un cop feta la representació de les dades, s'observa una clara tendència creixent. Tot i així, aquesta tendència no és constant, ja que és més pronunciada entre els anys 2000 i 2010 i sembla que s'estabilitza a partir de l'any 2011. 
+
+Pel que fa a la variància, s'observa que va disminuïnt a mesura que s'estabilitza la tendència creixent. És a dir, en els anys 2000-2010, la variància és major que en els anys 2011-2019, on el creixement s'estabilitza.
+
+```{r echo = FALSE}
+serie <- ts(read.table("./data/metro.dat"),start=1996,freq=12)
+plot(serie,main="Viatgers del Metro de BCN",ylab="Milers de persones")
+abline(v=1996:2019,lty=3,col=4)
+```
+
+## Descomposició en components bàsiques
+
+Per poder analitzar millor les dades, es realitza la seva descomposició en les seves components bàsiques, és a dir, el model aditiu de la serie:
+
+$$ X_t = T_t + S_t + C_t + \omega_t $$
+on:
+- $T_t$ és la **tendència** de la sèrie a llarg termini.
+- $S_t$ és el __*seasonal*__ de la sèrie (patró repetit periòdicament amb període constant).
+- $C_t$ és el **cicle** de la sèrie (patró repetit periòdicament amb període no constant). Aquesta part no surt representada en la descomposició.
+- $\omega_t$ és el soroll aleatòri.
+
+```{r echo = FALSE}
+plot(decompose(serie))
+```
+
+S'observa, tal i com s'havia comentat anteriorment, la clara tendència creixent de la sèrie, amb un creixement més gran a l'inici i una petita estabilitat més cap a l'actualitat. Pel que fa al patró estacional, observem que durant els mesos d'estiu, el número de passatgers del metro de BCN cau en picat. Aquest fet que no crida l'atenció, ja que el transport públic l'utilitza molta gent per anar al treball i, durant el període d'estiu (especialment l'agost), molta gent agafa vacances. Ara bé, observem que una vegada comença de nou el període escolar (setembre-octubre), la pujada del número de passatgers és molt pronunciada.
+
+# Transformació de les dades
+
+A continuació s'analitzarà la necessitat de realitzar una sèrie de transformacions amb l'objectiu d'aconseguir estacionaritat en la nostra sèrie temporal.
+
+## Variància constant
+
+En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Ja s'ha comentat que a simple vista semblava que no. Tot i així es comprova amb un plot de la variància front la mitjana i un boxplot de les dades cada 12 mesos (que és la freqüència de les nostres dades).
+
+```{r echo = FALSE}
+par(mfrow=c(1,2))
+m=apply(matrix(serie,nr=12),2,mean)
+v=apply(matrix(serie,nr=12),2,var)
+plot(m,v,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="Mean-Variance Plot")
+abline(lm(v~m),col=2,lty=3,lwd=2)
+
+boxplot(serie~floor(time(serie)))
+```
+
+
+
+## Patró estacional
+
+## Mitjana constant
+
+# ACF/PACF de les dades
+
+# Proposta de Models
+
+# Estimació dels Models
+
+# Validació dels Models
+
+# Estabilitat dels Models
+
+# Previsions a llarg termini
+
+# Tractament de *outliers*
