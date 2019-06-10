@@ -1,0 +1,313 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={PROJECTE ANÀLISI DE DADES: Entrada Turística Espanya},
+            pdfauthor={David Anglada Rotger i Andreu Huguet Segarra},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{PROJECTE ANÀLISI DE DADES: Entrada Turística Espanya}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{David Anglada Rotger i Andreu Huguet Segarra}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{17/5/2019}
+
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{Introducció}\label{introduccio}
+
+\section{Identificació}\label{identificacio}
+
+\subsection{Representació gràfica de les
+dades}\label{representacio-grafica-de-les-dades}
+
+Un cop feta la representació de les dades, s'observa una clara tendència
+creixent. Tot i així, aquesta tendència no és constant, ja que és menys
+pronunciada entre els anys 2000 i 2010, fins i tot amb una petita
+baixada entre els anys 2007i 2010 i sembla que es pronuncia a partir de
+l'any 2011.
+
+Pel que fa a la variància, s'observa que va augmentant a mesura que
+augmenta la mitjana dels valors de les dades, és a dir, a mesura que es
+pronuncia la tendència creixent. És a dir, en els anys 2000-2010, la
+variància és menor que en els anys 2011-2019, on el creixement augmenta.
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-1-1.pdf}
+
+\subsubsection{Descomposició en components
+bàsiques}\label{descomposicio-en-components-basiques}
+
+Per poder analitzar millor les dades, es realitza la seva descomposició
+en les seves components bàsiques, és a dir, el model aditiu de la serie:
+
+\[ X_t = T_t + S_t + C_t + \omega_t \] on: - \(T_t\) és la
+\textbf{tendència} de la sèrie a llarg termini. - \(S_t\) és el
+\textbf{\emph{seasonal}} de la sèrie (patró repetit periòdicament amb
+període constant). - \(C_t\) és el \textbf{cicle} de la sèrie (patró
+repetit periòdicament amb període no constant). Aquesta part no surt
+representada en la descomposició. - \(\omega_t\) és el soroll aleatòri.
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+S'observa, tal i com s'havia comentat anteriorment, la clara tendència
+creixent de la sèrie, amb un creixement menys pronunciat a l'inici, una
+petita baixada entre els anys 20017 i 2010 i una pujada més pronunciada
+més cap a l'actualitat. Pel que fa al patró estacional, observem que
+durant els mesos d'estiu, el número de turistes a Espanya augmenta molt
+considerablement. Aquest fet que no crida l'atenció, ja que és durant
+els mesos d'estiu quan més vacanses s'agafa la gent i més aprofiten per
+venir a les costes espanyoles. Durant els mesos de tardor-hivern,
+observem que el número de turistes cau en picat.
+
+\subsection{Transformació de les
+dades}\label{transformacio-de-les-dades}
+
+A continuació s'analitzarà la necessitat de realitzar una sèrie de
+transformacions amb l'objectiu d'aconseguir estacionaritat en la nostra
+sèrie temporal.
+
+\subsubsection{Variància constant}\label{variancia-constant}
+
+En primer lloc, s'estudiarà si es pot considerar que la variància de les
+dades sigui constant en el temps. Ja s'ha comentat que a simple vista
+semblava que no. Tot i així es comprova amb un plot de la variància
+front la mitjana i un \emph{boxplot} de les dades cada 12 mesos (que és
+la freqüència de les nostres dades).
+
+\begin{verbatim}
+## Warning in matrix(serie, nr = 12): data length [227] is not a sub-multiple
+## or multiple of the number of rows [12]
+
+## Warning in matrix(serie, nr = 12): data length [227] is not a sub-multiple
+## or multiple of the number of rows [12]
+\end{verbatim}
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+Tal i com s'havia observat a simple vista, la variància augmenta a
+mesura que agumenta la mitja. Per tant, no podem assumir variància
+constant. Amb el \emph{boxplot} es confirma aquesta hipòtesis. Així
+doncs, es procedeix a realitzar una transformació logarítmica de la
+sèrie per homogeneïtzar la variància. Els resultats obtinguts són els
+següents:
+
+\begin{verbatim}
+## Warning in matrix(logserie, nr = 12): data length [227] is not a sub-
+## multiple or multiple of the number of rows [12]
+
+## Warning in matrix(logserie, nr = 12): data length [227] is not a sub-
+## multiple or multiple of the number of rows [12]
+\end{verbatim}
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+S'observa que la variància s'ha homogeneïtzat, és a dir, ja es pot
+considerar constant.
+
+\subsubsection{Patró estacional}\label{patro-estacional}
+
+En segon lloc, s'estudiarà l'existència d'un patró estacional en les
+nostres dades. En cas que hi sigui present, es realitzarà una
+diferenciació d'ordre 12, és a dir,
+
+\[ W_t = X_t - X_{t-12} = (1 - B^{12})X_t \] on \(B\) és el
+\emph{backshift operator}, per eliminar aquest patró. Es realitza un
+\emph{monthplot} per comprovar-ne l'existència.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{monthplot}\NormalTok{(logserie)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+Tal i com s'havia comenta, s'observa una clara pujada de la presència de
+turistes durant els mesos d'estiu i una baixada en picat en l'entrada de
+l'hivern/tardor. Així doncs, és necessària una diferenciació d'ordre 12
+per eliminar aquest patró.
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+S'observa que amb una diferenciació d'ordre 12 s'ha eliminat el patró
+estacional. Ara bé, la mitjana de la sèrie encara no és constant.
+
+\subsubsection{Mitjana constant}\label{mitjana-constant}
+
+Per últim, es vol aconseguir que la sèrie tingui mitjana constant igual
+(i si és possible igual a 0) per a poder considerar definitivament la
+sèrie com un procés estacionari. Per aconseguir-ho, es realitzaran
+diferenciacions regulars de la sèrie fins que s'obtingui el resultat
+desitjat
+
+\[ W_t = X_t - X_{t-1} = (1 - B)X_t \]
+
+Es realitza la primera diferenciació. Els valors de mitjana i variància
+aconseguits són els seguents:
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{verbatim}
+## [1] -0.0003272785
+\end{verbatim}
+
+\begin{verbatim}
+##             V1
+## V1 0.004266965
+\end{verbatim}
+
+Com es pot observar, la mitjana del procés diferenciat regularment un
+cop es pot considerar constant i nula. Ara bé, es mira de diferenciar un
+segon cop i s'observa que la variància augmenta i, per tant, es té
+\emph{overdifferentiation}.
+
+Es definitiva, la sèrie transformada pel logaritme, diferenciada un cop
+i amb una diferenciació d'ordre 12 per eliminar el patró estacional
+(\(\texttt{d1d12logserie}\)) és un procés estacionari de mitjana 0.
+
+\includegraphics{ad_proj_st_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{verbatim}
+## [1] 0.0001260592
+\end{verbatim}
+
+\begin{verbatim}
+##           V1
+## V1 0.0132293
+\end{verbatim}
+
+\subsection{ACF/PACF de les dades}\label{acfpacf-de-les-dades}
+
+\subsection{Proposta de models}\label{proposta-de-models}
+
+\section{Estimació dels models}\label{estimacio-dels-models}
+
+\section{Validació dels Models}\label{validacio-dels-models}
+
+\subsection{Estabilitat dels Models}\label{estabilitat-dels-models}
+
+\section{Previsions a llarg termini}\label{previsions-a-llarg-termini}
+
+\section{\texorpdfstring{Tractament de
+\emph{outliers}}{Tractament de outliers}}\label{tractament-de-outliers}
+
+
+\end{document}
