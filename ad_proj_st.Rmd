@@ -127,7 +127,7 @@ var(d1d1d12logserie)
 
 En definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb una diferenciació d'ordre 12 per eliminar el patró estacional ($\texttt{d1d12logserie}$) és un procés estacionari de mitjana 0.
 
-## ACF/PACF de les dades
+## ACF/PACF de les dades i proposta de models
 
 Tot seguit, es realitza un anàlisi de les funcions *AutoCorrelació* i de *Correlació Parcial* de la sèrie transformada, és a dir, de la sèrie estacionària.
 
@@ -138,9 +138,34 @@ pacf(d1d12logserie,ylim=c(-1,1),col=c(rep(1,11),2),lwd=2,lag.max=72)
 par(mfrow=c(1,1))
 ```
 
+### Models proposats per la part regular (p,d,q)
 
+En relació a la part regular de la sèrie, en la funció d'AutoCorrelació (ACF) s'observa que només sobresurt el primer valor. La resta de valors es poden considerar nuls, ja que o bé estan dintre de l'interval de confiança, o bé es poden assignar al cas d'aleatorietat del 5%. Per tant, per la part regular, es proposaria $q=1$.
 
-## Proposta de models
+Pel que fa a la funció de Correlació Parcial (PACF) s'observa un decreixement exponencial dels primers valors. S'observen també valors fora de la banda de confiança, però poden ser assignats a la aleatorietat del cas 5%. Per tant, en aquest cas, es proposaria $p=0$. En tot cas, si es volgués mirar d'incloure el primer valor que sobresurt més que la resta, es podria considerar també $p=1$.
+
+Donat que s'ha realitzat diferenciació 1 cop, es té que $d=1$. Per tant, els models proposats per la part regular serien $MA(1)$ o, en tot cas, $ARMA(1,1)$ sobre la sèrie transformada regular.
+
+## Models proposats per la part estacional (P,D,Q)
+
+En relació a la part estacional de la sèrie, en la funció d'AutoCorrelació (ACF) s'observa que el primer valor es força significatiu, però també ho són el tercer, el quart i el cinquè, sobretot el quart. Donat que volem intentar proposar un model simplificat, es proposa $Q=0$.
+
+Pel que fa a la funció de Correlació Parcial (PACF) s'observa que sobresurt el primer valor una mica i també sobresurten el tercer i el quart valor. Ara bé, no sobresurten de manera tant significativa com en el cas dels valors del ACF i, per tant, podem assignar-ho al cas d'aleatorietat del 5%. Per tant, en aquest cas, es proposaria $P=1$.
+
+Donat que s'ha realitzat una diferenciació d'ordre 12 per eliminar el patró estacional, es té que $D=1$. Per tant, el model proposat per la part regular seria un $AR(1)$
+
+## Models proposats
+
+En conclusió, es proposen per la sèrie diferenciada els models estacionals:
+
+-$ARMA(0,1)(1,0)_s$
+-$ARMA(1,1)(1,0)_s$
+
+I per la sèrie original, tenint en compte les diferenciacions, es proposen:
+
+-$ARIMA(0,1,1)(1,1,0)_s$
+-$ARIMA(1,1,1)(1,1,0)_s$
+
 
 # Estimació dels models
 

@@ -7,7 +7,7 @@ http://www.fomento.gob.es/BE/?nivel=2&orden=03000000
 
 # ARIMA Model
 ```{r}
-serie=window(ts(read.table("airbcn.dat")[,1]/1000,start=1990,freq=12),start=1990)
+aserie=window(ts(read.table("AirBCN.dat")[,1]/1000,start=1990,freq=12),start=1990)
 print(round(serie,0))
 
 plot(serie,main="Miles de pasajeros de lineas aereas internacionales en el aeropuerto del Prat",type="o",ylim=c(0,4100))
@@ -18,61 +18,65 @@ text(1990:2017+0.5,4000,1990:2018,cex=0.8)
 
 ```{r}
 ##Plot de medias-varianzas
-m=apply(matrix(serie,nr=12),2,mean)
-v=apply(matrix(serie,nr=12),2,var)
+m=apply(matrix(aserie,nr=12),2,mean)
+v=apply(matrix(aserie,nr=12),2,var)
 plot(m,v,xlab="Medias anuales",ylab="Varianzas anuales",main="serie")
 abline(lm(v~m),col=2,lty=3,lwd=2)
 ```
 
 ```{r}
-##Boxplot por años
-boxplot(serie~floor(time(serie)))
+##Boxplot por a?os
+boxplot(serie~floor(time(aserie)))
 ```
 
 ```{r}
-##Transformación logaritmica para homogeneizar la varianza
-lnserie=log(serie)
-plot(lnserie)
+##Transformaci?n logaritmica para homogeneizar la varianza
+alnserie=log(aserie)
+plot(alnserie)
 ```
 
 ```{r}
-boxplot(lnserie~floor(time(lnserie)))
+boxplot(alnserie~floor(time(alnserie)))
+m=apply(matrix(alnserie,nr=12),2,mean)
+v=apply(matrix(alnserie,nr=12),2,var)
+plot(m,v,xlab="Medias anuales",ylab="Varianzas anuales",main="serie")
+abline(lm(v~m),col=2,lty=3,lwd=2)
 ```
 
 ```{r}
 
-##Descomposición en componentes básicas (tendencia+estacionalidad+proceso estacionario)
+##Descomposici?n en componentes b?sicas (tendencia+estacionalidad+proceso estacionario)
 plot(decompose(lnserie))
 ```
 
 ```{r}
-##Análisis de los índices estacionales (plot mensual)
+##An?lisis de los ?ndices estacionales (plot mensual)
 monthplot(lnserie)
 ```
 
 ```{r}
-## Diferenciación estacional (eliminación de la componente estacional)
+## Diferenciaci?n estacional (eliminaci?n de la componente estacional)
 d12lnserie=diff(lnserie,12)
 plot(d12lnserie)
 abline(h=0)
 ```
 
 ```{r}
-## Diferenciación regular (media no constante)
+## Diferenciaci?n regular (media no constante)
 d1d12lnserie=diff(d12lnserie,1)
 plot(d1d12lnserie)
 abline(h=0)
 ```
 
 ```{r}
-## Nueva diferenciación regular (posible no estacionariedad)
+## Nueva diferenciaci?n regular (posible no estacionariedad)
 d1d1d12lnserie=diff(d1d12lnserie,1)
 plot(d1d1d12lnserie)
 abline(h=0)
 ```
 
 ```{r}
-##Comparación de las varianzas
+##Comparaci?n de las varianzas
 var(lnserie)
 var(d12lnserie)
 var(d1d12lnserie)
@@ -175,7 +179,7 @@ validation=function(model,dades){
   abline(h=0)
   par(mfrow=c(1,1))
 }
-################# Fi Validació #################################
+################# Fi Validaci? #################################
 ```
 
 
@@ -249,16 +253,16 @@ abline(v=(ultim[1]-2):(ultim[1]+3),lty=3,col=4)
 
 # ARIMA Model with outlier treatment
 ```{r}
-########## Atípics ###############################################
+########## At?pics ###############################################
 
 
 
 source("atipics2.r")
 
-##Detección de atípicos: hay una diferenciación regular y una de orden 12, fijamos el criterio a 2.8 y buscamos también LS
+##Detecci?n de at?picos: hay una diferenciaci?n regular y una de orden 12, fijamos el criterio a 2.8 y buscamos tambi?n LS
 mod.atip=outdetec(mod,dif=c(1,12),crit=2.8,LS=T)
 
-##Tabla de atípicos encontrados con su fecha
+##Tabla de at?picos encontrados con su fecha
 atipics=mod.atip$atip[order(mod.atip$atip[,1]),]
 meses=c("Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic")
 data.frame(atipics,Fecha=paste(meses[(atipics[,1]-1)%%12+1],start(lnserie)[1]+((atipics[,1]-1)%/%12)))
@@ -270,7 +274,7 @@ data.frame(atipics,Fecha=paste(meses[(atipics[,1]-1)%%12+1],start(lnserie)[1]+((
 
 ```{r}
 
-##Comparación serie observada con la serie linealizada (sin atípicos)
+##Comparaci?n serie observada con la serie linealizada (sin at?picos)
 lnserie.lin=lineal(lnserie,mod.atip$atip)
 serie.lin=exp(lnserie.lin)
 
@@ -279,12 +283,12 @@ lines(serie)
 ```
 
 ```{r}
-##Efecto de los atípicos en la serie de logaritmos
+##Efecto de los at?picos en la serie de logaritmos
 plot(lnserie-lnserie.lin)
 ```
 
 ```{r}
-##Identificación del modelo para la serie linealizada
+##Identificaci?n del modelo para la serie linealizada
 d1d12lnserie.lin=diff(diff(lnserie.lin,12))
 par(mfrow=c(1,2))
 acf(d1d12lnserie.lin,ylim=c(-1,1),lag.max=72,col=c(2,rep(1,11)),lwd=2)
@@ -293,7 +297,7 @@ par(mfrow=c(1,1))
 ```
 
 ```{r}
-##Estimación del modelo para la serie linealizada
+##Estimaci?n del modelo para la serie linealizada
 (mod.lin=arima(lnserie.lin,order=c(0,1,1),seasonal=list(order=c(2,1,0),period=12)))
 ```
 
