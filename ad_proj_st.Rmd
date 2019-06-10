@@ -1,9 +1,10 @@
 ---
-title: 'PROJECTE ANÀLISI DE DADES: Metro BCN'
+title: 'PROJECTE ANÀLISI DE DADES: Entrada Turística Espanya'
 author: "David Anglada Rotger i Andreu Huguet Segarra"
 date: "17/5/2019"
 output:
   pdf_document:
+    df_print: paged
     number_sections: yes
     toc: yes
   html_document:
@@ -15,19 +16,21 @@ fig_height: 3
 
 # Introducció
 
-# Representació gràfica de les dades
+# Identificació
 
-Un cop feta la representació de les dades, s'observa una clara tendència creixent. Tot i així, aquesta tendència no és constant, ja que és més pronunciada entre els anys 2000 i 2010 i sembla que s'estabilitza a partir de l'any 2011. 
+## Representació gràfica de les dades
 
-Pel que fa a la variància, s'observa que va disminuïnt a mesura que s'estabilitza la tendència creixent. És a dir, en els anys 2000-2010, la variància és major que en els anys 2011-2019, on el creixement s'estabilitza.
+Un cop feta la representació de les dades, s'observa una clara tendència creixent. Tot i així, aquesta tendència no és constant, ja que és menys pronunciada entre els anys 2000 i 2010, fins i tot amb una petita baixada entre els anys 2007i 2010 i sembla que es pronuncia a partir de l'any 2011. 
+
+Pel que fa a la variància, s'observa que va augmentant a mesura que augmenta la mitjana dels valors de les dades, és a dir, a mesura que es pronuncia la tendència creixent. És a dir, en els anys 2000-2010, la variància és menor que en els anys 2011-2019, on el creixement augmenta.
 
 ```{r echo = FALSE}
-serie <- ts(read.table("./data/metro.dat"),start=1996,freq=12)
-plot(serie,main="Viatgers del Metro de BCN",ylab="Milers de persones")
-abline(v=1996:2019,lty=3,col=4)
+serie<-ts(read.table("./data/entradTur.dat")/1000000,start=2000,freq=12)
+plot(serie,main="Entrada Turística a Espanya",ylab="Milions")
+abline(v=1999:2019,col=4,lty=3)
 ```
 
-## Descomposició en components bàsiques
+### Descomposició en components bàsiques
 
 Per poder analitzar millor les dades, es realitza la seva descomposició en les seves components bàsiques, és a dir, el model aditiu de la serie:
 
@@ -42,15 +45,15 @@ on:
 plot(decompose(serie))
 ```
 
-S'observa, tal i com s'havia comentat anteriorment, la clara tendència creixent de la sèrie, amb un creixement més gran a l'inici i una petita estabilitat més cap a l'actualitat. Pel que fa al patró estacional, observem que durant els mesos d'estiu, el número de passatgers del metro de BCN cau en picat. Aquest fet que no crida l'atenció, ja que el transport públic l'utilitza molta gent per anar al treball i, durant el període d'estiu (especialment l'agost), molta gent agafa vacances. Ara bé, observem que una vegada comença de nou el període escolar (setembre-octubre), la pujada del número de passatgers és molt pronunciada.
+S'observa, tal i com s'havia comentat anteriorment, la clara tendència creixent de la sèrie, amb un creixement menys pronunciat a l'inici, una petita baixada entre els anys 20017 i 2010 i una pujada més pronunciada més cap a l'actualitat. Pel que fa al patró estacional, observem que durant els mesos d'estiu, el número de turistes a Espanya augmenta molt considerablement. Aquest fet que no crida l'atenció, ja que és durant els mesos d'estiu quan més vacanses s'agafa la gent i més aprofiten per venir a les costes espanyoles. Durant els mesos de tardor-hivern, observem que el número de turistes cau en picat.
 
-# Transformació de les dades
+## Transformació de les dades
 
 A continuació s'analitzarà la necessitat de realitzar una sèrie de transformacions amb l'objectiu d'aconseguir estacionaritat en la nostra sèrie temporal.
 
-## Variància constant
+### Variància constant
 
-En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Ja s'ha comentat que a simple vista semblava que no. Tot i així es comprova amb un plot de la variància front la mitjana i un boxplot de les dades cada 12 mesos (que és la freqüència de les nostres dades).
+En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Ja s'ha comentat que a simple vista semblava que no. Tot i així es comprova amb un plot de la variància front la mitjana i un *boxplot* de les dades cada 12 mesos (que és la freqüència de les nostres dades).
 
 ```{r echo = FALSE}
 par(mfrow=c(1,2))
@@ -62,21 +65,79 @@ abline(lm(v~m),col=2,lty=3,lwd=2)
 boxplot(serie~floor(time(serie)))
 ```
 
+Tal i com s'havia observat a simple vista, la variància augmenta a mesura que agumenta la mitja. Per tant, no podem assumir variància constant. Amb el *boxplot* es confirma aquesta hipòtesis. Així doncs, es procedeix a realitzar una transformació logarítmica de la sèrie per homogeneïtzar la variància. Els resultats obtinguts són els següents:
+
+```{r echo = FALSE}
+logserie <- log(serie)
+
+par(mfrow=c(1,2))
+logm=apply(matrix(logserie,nr=12),2,mean)
+logv=apply(matrix(logserie,nr=12),2,var)
+plot(logm,logv,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="Mean-Variance Plot")
+abline(lm(logv~logm),col=2,lty=3,lwd=2)
+
+boxplot(logserie~floor(time(logserie)))
+```
+
+S'observa que la variància s'ha homogeneïtzat, és a dir, ja es pot considerar constant.
+
+### Patró estacional
+
+En segon lloc, s'estudiarà l'existència d'un patró estacional en les nostres dades. En cas que hi sigui present, es realitzarà una diferenciació d'ordre 12, és a dir,
+
+$$ W_t = X_t - X_{t-12} = (1 - B^{12})X_t $$
+on $B$ és el *backshift operator*, per eliminar aquest patró. Es realitza un *monthplot* per comprovar-ne l'existència.
+
+```{r}
+monthplot(logserie)
+```
+
+Tal i com s'havia comenta, s'observa una clara pujada de la presència de turistes durant els mesos d'estiu i una baixada en picat en l'entrada de l'hivern/tardor. Així doncs, és necessària una diferenciació d'ordre 12 per eliminar aquest patró.
+
+```{r echo = FALSE}
+d12logserie <- diff(logserie,12)
+monthplot(d12logserie)
+```
+
+S'observa que amb una diferenciació d'ordre 12 s'ha eliminat el patró estacional. Ara bé, la mitjana de la sèrie encara no és constant.
+
+### Mitjana constant
+
+Per últim, es vol aconseguir que la sèrie tingui mitjana constant igual (i si és possible igual a 0) per a poder considerar definitivament la sèrie com un procés estacionari. Per aconseguir-ho, es realitzaran diferenciacions regulars de la sèrie fins que s'obtingui el resultat desitjat
+
+$$ W_t = X_t - X_{t-1} = (1 - B)X_t $$
+
+Es realitza la primera diferenciació. Els valors de mitjana i variància aconseguits són els seguents:
+
+```{r echo = FALSE}
+d1d12logserie <- diff(d12logserie)
+plot(d1d12logserie)
+mean(d1d12logserie)
+var(d1d12logserie)
+```
+
+Com es pot observar, la mitjana del procés diferenciat regularment un cop es pot considerar constant i nula. Ara bé, es mira de diferenciar un segon cop i s'observa que la variància augmenta i, per tant, es té *overdifferentiation*. 
+
+Es definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb una diferenciació d'ordre 12 per eliminar el patró estacional ($\texttt{d1d12logserie}$) és un procés estacionari de mitjana 0.
+
+```{r echo = FALSE}
+d1d1d12logserie <- diff(d1d12logserie)
+plot(d1d1d12logserie)
+mean(d1d1d12logserie)
+var(d1d1d12logserie)
+```
+
+## ACF/PACF de les dades
 
 
-## Patró estacional
 
-## Mitjana constant
+## Proposta de models
 
-# ACF/PACF de les dades
-
-# Proposta de Models
-
-# Estimació dels Models
+# Estimació dels models
 
 # Validació dels Models
 
-# Estabilitat dels Models
+## Estabilitat dels Models
 
 # Previsions a llarg termini
 
