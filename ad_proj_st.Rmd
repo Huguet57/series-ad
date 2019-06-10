@@ -166,29 +166,288 @@ I per la sèrie original, tenint en compte les diferenciacions, es proposen:
 -$SARIMA(0,1,1)(1,1,0)_s$
 -$SARIMA(1,1,1)(1,1,0)_s$
 
+# Estimació dels models
+
+A continuació, s'estimen els coeficients dels dos models proposats i es mira que tots siguin significatius. Per mirar-ho, es realitza el test següent (suposant que estem davant d'un model MA:
+
+$$ H_0: \theta_i = 0 $$
+$$ H_1: \theta_i \neq 0$$
+amb l'estadístic $$ \hat{t} = \frac{\hat{\theta}_i}{\text{se}(\hat{\theta}_i)} $$ ~ $$t-student_{T-k}$$, on k és el nombre total de paràmetres i T és el període. Ara bé, a la pràctica es diu que un coeficient és significant si $|\hat{t}| > 2$.
+
+En primer lloc, s'estimen els coeficients dels models proposats, amb intercept i sense.
 ```{r, echo = FALSE}
 pdq.1 <- c(0, 1, 1)
 PDQ.1 <- c(1, 1, 0)
+(mod.1.int <- arima(d1d12logserie, order=c(0,0,1), seasonal = list(order = c(1,0,0), period=12)))
 (mod.1 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.1, period=12)))
 pdq.2 <- c(1, 1, 1)
 PDQ.2 <- c(1, 1, 0)
-(mod.2 <- arima(logserie, order = pdq.2, seasonal = list(order = PDQ.2, period=12)))
+(mod.2.int <- arima(d1d12logserie, order=c(1,0,1), seasonal = list(order = c(1,0,0), period=12)))
+(mod.2 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.2, period=12)))
 ```
 
-# Estimació dels models
+S'observa que, en ambdós casos, l'intercept no és significatiu i, per tant, es descarten aquests dos models. En el cas del model $SARIMA(0,1,1)(1,1,0)_s$, els dos coeficients són significatius. Ara bé, en l'altre model proposat, el model $SARIMA(1,1,1)(1,1,0)_s$, s'observa que el coeficient $\texttt{ar1}$ no és significatiu. Tot i així, el primer model proposat ($SARIMA(0,1,1)(1,1,0)_s$), té un pitjor AIC que l'altre model. Així doncs, de moment, ens quedem amb aquest model. Falta, òbviament, la seva validació.
+
+```{r echo = FALSE}
+abs(mod.1.int$coef/sqrt(diag(mod.1.int$var.coef)))>2
+abs(mod.1$coef/sqrt(diag(mod.1$var.coef)))>2
+abs(mod.2.int$coef/sqrt(diag(mod.2.int$var.coef)))>2
+abs(mod.2$coef/sqrt(diag(mod.2$var.coef)))>2
+```
 
 # Validació dels Models
 
-```{r}
-source("validation.r")
+Tot seguit, es realitzarà la validació dels dos models proposat. En el procés de validació es realitzarà un anàlisi dels residus ($Z_t$) dels models, es comprovarà que aquests siguin estacionaris i invertibles, es verificarà la seva estabilitat i s'evaluarà la seva capacitat de previsió.
+
+## Estudi dels residus dels models
+
+Així doncs, en primer lloc, s'estudiaràn els residus del model i es comprovaran els següents aspectes:
+
+- Homogeneïtat de la variància residual ($\sigma_{Z}^2$ constant).
+- Normalitat ($Z_T$ ~ Normal).
+- Independència ($\rho(k) = 0 \, \, \forall k > 0$).
+
+### Homogeneïtat de la variància
+
+Per comprovar l'homogeneïtat de la variància dels residus, s'analitzen el plot dels mateixos residus, el plot de l'arrel quadrada del seu valor absolut i les funcions ACF i PACF del seu quadrat.
+
+En el cas del primer model ($\texttt{mod.1}$) no s'observa cap tipus de patró (ni creixent ni decreixent) en el plot dels residus o en el plot de l'arrel quadrada del seu valor absolut. A més, en l'ACF i el PACF del quadrat dels residus tots els valors estan dintre de la banda de confiança i, per tant, els podem considerar nuls.
+
+```{r echo = FALSE}
+model = mod.1
+
+s=frequency(get(model$series))
+resid=model$residuals
+par(mfrow=c(1,2),mar=c(3,3,3,3))
+#Residuals plot
+plot(resid,main="Residuals mod.1")
+abline(h=0)
+abline(h=c(-3*sd(resid),3*sd(resid)),lty=3,col=4)
+#Square Root of absolute values of residuals (Homocedasticity)
+scatter.smooth(sqrt(abs(resid)),main="Square Root of Absolute residuals mod.1", lpars=list(col=2))
+par(mfrow=c(1,2))
+acf(resid^2,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1, main="Series resid^2 mod.1 ACF")
+pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1, main="Series resid^2 mod.1 PACF")
+par(mfrow=c(1,1))
 ```
 
-```{r}
-validation(mod.1, d1d12logserie)
+En el cas del segon model ($\texttt{mod.1}$), es poden extreure les mateixes conclusions que en el primer model i, per tant, també es pot assumir homogeneïtat de variància residual.
+
+```{r echo = FALSE}
+model = mod.2
+
+s=frequency(get(model$series))
+resid=model$residuals
+par(mfrow=c(1,2),mar=c(3,3,3,3))
+#Residuals plot
+plot(resid,main="Residuals mod.2")
+abline(h=0)
+abline(h=c(-3*sd(resid),3*sd(resid)),lty=3,col=4)
+#Square Root of absolute values of residuals (Homocedasticity)
+scatter.smooth(sqrt(abs(resid)),main="Square Root of Absolute residuals mod.2", lpars=list(col=2))
+par(mfrow=c(1,2))
+acf(resid^2,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1, main="Series resid^2 mod.2 ACF")
+pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1, main="Series resid^2 mod.2 PACF")
+par(mfrow=c(1,1))
 ```
 
-```{r}
-validation(mod.2, d1d12logserie)
+### Normalitat
+
+Per comprovar la normalitat dels residus dels models proposats s'estudiarà el Q-Q plot, l'histograma dels residus amb la normal que s'hauria de seguir sobreposada i es realitzarà el test de Sharipo-Wilks.
+
+En el cas del model $\texttt{mod.1}$, s'observa en el Q-Q plot que els quartils es situen sobre la línia dels quartils teòrics i que l'histograma s'ajusta a la distribució normal a la que s'hauria d'ajustar. A més, el *p-value* del test de Sharipo-Wilks és $4.879 \times 10^{-05}$, menor que 0.05 i, per tant, es pot assumir la hipòtesi de normalitat en els residus.
+
+```{r echo = FALSE}
+model = mod.1
+
+s=frequency(get(model$series))
+resid=model$residuals
+par(mfrow=c(1,2),mar=c(3,3,3,3))
+#Normal plot of residuals
+qqnorm(resid)
+qqline(resid,col=2,lwd=2)
+
+##Histogram of residuals with normal curve
+hist(resid,breaks=20,freq=FALSE)
+curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
+
+##Shapiro-Wilks Normality test
+print(shapiro.test(resid(model)))
+```
+
+En el cas del model $\texttt{mod.2}$, les conclusions que s'extreuen són les mateixes. En aquest cas, el *p-value* és de $7.675 \times 10^{-05}$. Per tant, també assumim normalitat en aquest cas.
+
+```{r echo = FALSE}
+model = mod.2
+
+s=frequency(get(model$series))
+resid=model$residuals
+par(mfrow=c(1,2),mar=c(3,3,3,3))
+#Normal plot of residuals
+qqnorm(resid)
+qqline(resid,col=2,lwd=2)
+
+##Histogram of residuals with normal curve
+hist(resid,breaks=20,freq=FALSE)
+curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
+
+##Shapiro-Wilks Normality test
+print(shapiro.test(resid(model)))
+```
+
+### Independència
+
+Per comprovar la independència residual, és a dir, que $\rho(k) = 0$ $\forall k > 0$ s'estudiarà el ACF i el PACF dels residus i es realitzarà el test de Ljung-Box.
+
+Pel que fa al primer model, en primer lloc observem que les funcions ACF i PACF prenen valors pràcticament iguals, cosa que ja fa intuïr que es complirà la independència. Els residus estandaritzats prenen valors dintre de la franja de (-2,2), la gran majoria, que és el comportament esperat. A més, els *p-values* del test Ljung-Box, que gairebé tots menors que 0.05, confirmen que es pot assumir la independència dels residus.
+
+```{r echo = FALSE}
+model = mod.1
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+#ACF & PACF of residuals
+par(mfrow=c(1,2))
+acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
+pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
+par(mfrow=c(1,1))
+
+#Ljung-Box p-values
+par(mar=c(2,2,1,1))
+tsdiag(model,gof.lag=7*s)
+```
+
+En el segon model, l'anàlisi es pràcticament el mateix, tret que, en aquest cas, els *p-values* els costa més assolir un valor per sota de 0.05. Tot i així, també podem assumir la independència (tot i que no de manera tant clara com en el cas anterior).
+
+```{r echo = FALSE}
+model = mod.2
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+#ACF & PACF of residuals
+par(mfrow=c(1,2))
+acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
+pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
+par(mfrow=c(1,1))
+
+#Ljung-Box p-values
+par(mar=c(2,2,1,1))
+tsdiag(model,gof.lag=7*s)
+```
+
+### Estacionaritat i invertibilitat dels models
+
+Per analitzar l'estacionaritat i la invertibilitat dels models proposats, s'expresaran els models com a models $AR(\infty)$ i $MA(\infty)$:
+
+$$ (1 - \phi_1B - \cdots - \phi_pB^p)X_t = (1 + \theta_1B + \cdots + \theta_qB^q)Z_t $$
+$$ AR(\infty): \quad \frac{1 - \phi_1B - \cdots - \phi_pB^p}{1 + \theta_1B + \cdots + \theta_qB^q}X_t = (1 - \pi_1B - \pi_2B - \cdots) X_t = Z_t$$
+$$ MA(\infty): \quad \frac{1 + \theta_1B + \cdots + \theta_qB^q}{1 - \phi_1B - \cdots - \phi_pB^p}Z_t = (1 + \psi_1B + \psi_2B + \cdots) Z_t = X_t$$
+A partir d'aquí el models seran *invertibles* si el mòdul de totes les arrels de $\theta_q(B) = 1 + \theta_1B + \cdots + \theta_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \pi_i^2 < \infty$. Per per altra banda, seran *estacionaris* si el mòdul de totes les arrels de $\phi_q(B) = 1 - \phi_1B - \cdots - \phi_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \psi_i^2 < \infty$.
+
+En el cas del primer model, s'observa que es compleixen totes les condicions i, per tant, el $\texttt{mod.1}$ és estacionari i invertible.
+
+```{r echo = FALSE}
+model = mod.1
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+#Stationary and Invertible
+cat("\nModul of AR Characteristic polynomial Roots: ", 
+    Mod(polyroot(c(1,-model$model$phi))),"\n")
+cat("\nModul of MA Characteristic polynomial Roots: ",
+    Mod(polyroot(c(1,model$model$theta))),"\n")
+
+#Model expressed as an MA infinity (psi-weights)
+psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
+names(psis)=paste("psi",1:36)
+cat("\nPsi-weights (MA(inf))\n")
+cat("\n--------------------\n")
+print(psis[1:20])
+
+#Model expressed as an AR infinity (pi-weights)
+pis=-ARMAtoMA(ar=-model$model$theta,ma=-model$model$phi,lag.max=36)
+names(pis)=paste("pi",1:36)
+cat("\nPi-weights (AR(inf))\n")
+cat("\n--------------------\n")
+print(pis[1:20])
+```
+
+
+
+```{r echo = FALSE}
+model = mod.2
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+#Stationary and Invertible
+cat("\nModul of AR Characteristic polynomial Roots: ", 
+    Mod(polyroot(c(1,-model$model$phi))),"\n")
+cat("\nModul of MA Characteristic polynomial Roots: ",
+    Mod(polyroot(c(1,model$model$theta))),"\n")
+
+#Model expressed as an MA infinity (psi-weights)
+psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
+names(psis)=paste("psi",1:36)
+cat("\nPsi-weights (MA(inf))\n")
+cat("\n--------------------\n")
+print(psis[1:20])
+
+#Model expressed as an AR infinity (pi-weights)
+pis=-ARMAtoMA(ar=-model$model$theta,ma=-model$model$phi,lag.max=36)
+names(pis)=paste("pi",1:36)
+cat("\nPi-weights (AR(inf))\n")
+cat("\n--------------------\n")
+print(pis[1:20])
+```
+
+En el cas del segon model, també es compleix tot i, per tant, també és invertible i estacionari.
+
+### Comparació entre els ACF/PACF mostrals i els ACF/PACF teòrics
+
+Per últim, comparem els valors del ACF i el PACF de les dades amb els valors teòric. S'observa que, en el cas del model $\texttt{mod.1}$, els valors teòrics s'aproximen gairebé perfectament als valors mostrals. En el cas del segon model també es podria dir el mateix, tot i que el quart valor de l'ACF teòric és negatiu i el mostral és positiu. Per tant, ambdós models s'aproximen als valors de ACF/PACF de les mostres, potser una mica millor el $\texttt{mod.1}$.
+
+```{r echo = FALSE}
+model = mod.1
+dades = d1d12logserie
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+
+#Sample ACF vs. Teoric ACF
+par(mfrow=c(2,3),mar=c(3,3,3,3))
+acf(dades, ylim=c(-1,1) ,lag.max=36,main="Sample ACF")
+
+plot(ARMAacf(model$model$phi,model$model$theta,lag.max=36),ylim=c(-1,1), 
+     type="h",xlab="Lag",  ylab="", main="ACF Teoric mod.1")
+abline(h=0)
+
+model = mod.2
+
+plot(ARMAacf(model$model$phi,model$model$theta,lag.max=36),ylim=c(-1,1), 
+     type="h",xlab="Lag",  ylab="", main="ACF Teoric mod.1")
+abline(h=0)
+
+model = mod.1
+
+#Sample PACF vs. Teoric PACF
+pacf(dades, ylim=c(-1,1) ,lag.max=36,main="Sample PACF")
+
+plot(ARMAacf(model$model$phi,model$model$theta,lag.max=36, pacf=T),ylim=c(-1,1),
+     type="h", xlab="Lag", ylab="", main="PACF Teoric mod.1")
+abline(h=0)
+
+model = mod.2
+
+plot(ARMAacf(model$model$phi,model$model$theta,lag.max=36, pacf=T),ylim=c(-1,1),
+     type="h", xlab="Lag", ylab="", main="PACF Teoric mod.1")
+abline(h=0)
+
+par(mfrow=c(1,1))
 ```
 
 ## Estabilitat dels Models
@@ -202,11 +461,13 @@ lnserie1=log(serie1)
 serie2=window(serie,end=ultim)
 lnserie2=log(serie2)
 
-(mod1 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
-(mod2 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
+(mod11 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
+(mod12 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
+(mod21 <- arima(lnserie1, order=pdq.2, seasonal=list(order=PDQ.2, period=12)))
+(mod22 <- arima(lnserie2, order=pdq.2, seasonal=list(order=PDQ.2, period=12)))
 ```
 
-# Previsions a llarg termini
+## Capacitat de predicció
 
 ```{r}
 pred=predict(mod2,n.ahead=12)
