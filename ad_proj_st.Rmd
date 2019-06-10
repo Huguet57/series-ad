@@ -88,7 +88,7 @@ En segon lloc, s'estudiarà l'existència d'un patró estacional en les nostres 
 $$ W_t = X_t - X_{t-12} = (1 - B^{12})X_t $$
 on $B$ és el *backshift operator*, per eliminar aquest patró. Es realitza un *monthplot* per comprovar-ne l'existència.
 
-```{r}
+```{r echo = FALSE}
 monthplot(logserie)
 ```
 
@@ -118,8 +118,6 @@ var(d1d12logserie)
 
 Com es pot observar, la mitjana del procés diferenciat regularment un cop es pot considerar constant i nula. Ara bé, es mira de diferenciar un segon cop i s'observa que la variància augmenta i, per tant, es té *overdifferentiation*. 
 
-Es definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb una diferenciació d'ordre 12 per eliminar el patró estacional ($\texttt{d1d12logserie}$) és un procés estacionari de mitjana 0.
-
 ```{r echo = FALSE}
 d1d1d12logserie <- diff(d1d12logserie)
 plot(d1d1d12logserie)
@@ -127,7 +125,18 @@ mean(d1d1d12logserie)
 var(d1d1d12logserie)
 ```
 
+En definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb una diferenciació d'ordre 12 per eliminar el patró estacional ($\texttt{d1d12logserie}$) és un procés estacionari de mitjana 0.
+
 ## ACF/PACF de les dades
+
+Tot seguit, es realitza un anàlisi de les funcions *AutoCorrelació* i de *Correlació Parcial* de la sèrie transformada, és a dir, de la sèrie estacionària.
+
+```{r echo = FALSE}
+par(mfrow=c(1,2))
+acf(d1d12logserie,ylim=c(-1,1),col=c(2,rep(1,11)),lwd=2,lag.max=72)
+pacf(d1d12logserie,ylim=c(-1,1),col=c(rep(1,11),2),lwd=2,lag.max=72)
+par(mfrow=c(1,1))
+```
 
 
 
