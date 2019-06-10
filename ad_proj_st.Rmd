@@ -1,0 +1,16 @@
+---
+title: 'PROJECTE ANÀLISI DE DADES: Metro BCN'
+author: "David Anglada Rotger i Andreu Huguet Segarra"
+date: "17/5/2019"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+  html_document:
+    df_print: paged
+    toc: yes
+fig_width: 5
+fig_height: 3
+---
+
+
