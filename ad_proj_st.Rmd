@@ -18,6 +18,8 @@ fig_height: 3
 
 En aquest estudi, es realitzarà l'anàlisi de l'entrada turística a Espanya des de l'any 2000 fins a l'actualitat. S'analitzaran les seves tendències generals i estacionals, així com la presència de valors atípics que puguin dificultar-ne l'examinació. L'objectiu de tot plegat és arribar a proposar un model vàlid per poder predir amb la màxima precisió l'entrada turística del proper any.
 
+**FONT DE DADES:** Ministeri d'Indústria, Comerç i Turisme. https://sedeaplicaciones.minetur.gob.es/Badase/BadasiUI/lstSeriesInformesPostBack.aspx U64A2: FRONTUR ENTRADA DE TURISTAS
+
 # Identificació
 
 ## Representació gràfica de les dades
