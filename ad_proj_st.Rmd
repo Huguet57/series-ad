@@ -1,5 +1,5 @@
 ---
-title: 'PROJECTE ANÀLISI DE DADES: Entrada Turística Espanya'
+title: "PROJECTE ANÀLISI DE DADES: Entrada turística a Espanya del 2000 a l'actualitat"
 author: "David Anglada Rotger i Andreu Huguet Segarra"
 date: "17/5/2019"
 output:
@@ -16,17 +16,13 @@ fig_height: 3
 
 # Introducció
 
-En aquest estudi, es realitzarà l'anàlisi de l'entrada turística a Espanya des de l'any 2000 fins a l'actualitat. S'analitzaran les seves tendències generals i estacionals, així com la presència de valors atípics que puguin dificultar-ne l'examinació. L'objectiu de tot plegat és arribar a proposar un model vàlid per poder predir amb la màxima precisió l'entrada turística del proper any.
+En aquest estudi, es realitzarà l'anàlisi de l'entrada turística a Espanya des de l'any 2000 fins a l'actualitat. S'analitzaran les tendències tant generals com estacionals, així com la presència de valors atípics que puguin dificultar-ne l'examinació. L'objectiu de tot plegat és arribar a proposar un model vàlid per poder predir amb la màxima precisió l'entrada turística del proper any.
 
 **FONT DE DADES:** Ministeri d'Indústria, Comerç i Turisme. https://sedeaplicaciones.minetur.gob.es/Badase/BadasiUI/lstSeriesInformesPostBack.aspx U64A2: FRONTUR ENTRADA DE TURISTAS
 
-# Identificació
+# Identificació del model
 
 ## Representació gràfica de les dades
-
-Un cop feta la representació de les dades, s'observa una clara tendència creixent. Tot i així, aquesta tendència no és constant, ja que és menys pronunciada entre els anys 2000 i 2010, fins i tot amb una petita baixada entre els anys 2007i 2010 i sembla que es pronuncia a partir de l'any 2011. 
-
-Pel que fa a la variància, s'observa que va augmentant a mesura que augmenta la mitjana dels valors de les dades, és a dir, a mesura que es pronuncia la tendència creixent. És a dir, en els anys 2000-2010, la variància és menor que en els anys 2011-2019, on el creixement augmenta.
 
 ```{r echo = FALSE}
 serie<-ts(read.table("./data/EntradTur.dat")/1000000,start=2000,freq=12)
@@ -34,42 +30,53 @@ plot(serie,main="Entrada Turística a Espanya",ylab="Milions")
 abline(v=1999:2019,col=4,lty=3)
 ```
 
+Un cop feta la representació de les dades, s'observa una clara tendència variant, generalment creixent al llarg dels anys. És menys pronunciada entre els anys 2000 i 2010, fins i tot amb una petita baixada entre els anys 2007 i 2010, i sembla que es pronuncia a partir de l'any 2011. 
+
+Pel que fa a la variància, s'observa que va augmentant a mesura que es pronuncia la tendència creixent. És a dir, en els anys 2000-2010, la variància és menor que en els anys 2011-2019, on el creixement augmenta.
+
 ### Descomposició en components bàsiques
 
-Per poder analitzar millor les dades, es realitza la seva descomposició en les seves components bàsiques, és a dir, el model aditiu de la serie:
+Per poder analitzar millor les dades, es realitza la seva descomposició en les seves components bàsiques, és a dir, el model aditiu de la sèrie:
 
 $$ X_t = T_t + S_t + C_t + \omega_t $$
 on:
-- $T_t$ és la **tendència** de la sèrie a llarg termini.
-- $S_t$ és el __*seasonal*__ de la sèrie (patró repetit periòdicament amb període constant).
-- $C_t$ és el **cicle** de la sèrie (patró repetit periòdicament amb període no constant). Aquesta part no surt representada en la descomposició.
-- $\omega_t$ és el soroll aleatòri.
+* $T_t$ és la **tendència** de la sèrie a llarg termini.
+* $S_t$ és el __*seasonal*__ de la sèrie (patró repetit periòdicament amb període constant).
+* $C_t$ és el **cicle** de la sèrie (patró repetit periòdicament amb període no constant). Aquesta part no surt representada en la descomposició.
+* $\omega_t$ és el soroll aleatòri.
 
 ```{r echo = FALSE}
 plot(decompose(serie))
 ```
 
-S'observa, tal i com s'havia comentat anteriorment, la clara tendència creixent de la sèrie, amb un creixement menys pronunciat a l'inici, una petita baixada entre els anys 20017 i 2010 i una pujada més pronunciada més cap a l'actualitat. Pel que fa al patró estacional, observem que durant els mesos d'estiu, el número de turistes a Espanya augmenta molt considerablement. Aquest fet que no crida l'atenció, ja que és durant els mesos d'estiu quan més vacanses s'agafa la gent i més aprofiten per venir a les costes espanyoles. Durant els mesos de tardor-hivern, observem que el número de turistes cau en picat.
+S'observa, tal i com s'havia comentat anteriorment, la clara tendència creixent de la sèrie, amb un creixement menys pronunciat a l'inici, una petita baixada entre els anys 20017 i 2010 i una pujada més pronunciada més cap a l'actualitat.
+
+Pel que fa al patró estacional, observem que durant els mesos d'estiu, el número de turistes a Espanya augmenta molt considerablement. Aquest fet que no crida l'atenció, ja que és durant els mesos d'estiu quan més vacances s'agafa la gent i més aprofiten per venir a les costes espanyoles. Durant els mesos de tardor-hivern, observem que el número de turistes cau en picat.
 
 ## Transformació de les dades
 
-A continuació s'analitzarà la necessitat de realitzar una sèrie de transformacions amb l'objectiu d'aconseguir estacionaritat en la nostra sèrie temporal.
+La clara tendència creixent de la mitjana i la variància a mesura que ``t`` augmenta ens fa rebutjar la hipòtesi de l'estacionarietat en les dades.
+
+A continuació s'analitzarà la necessitat de realitzar una sèrie de transformacions amb l'objectiu d'aconseguir estacionaritat en la nostra sèrie temporal i poder aplicar la teoria dels models ARIMA per a sèries estacionàries.
 
 ### Variància constant
 
-En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Ja s'ha comentat que a simple vista semblava que no. Tot i així es comprova amb un plot de la variància front la mitjana i un *boxplot* de les dades cada 12 mesos (que és la freqüència de les nostres dades).
+En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Es comprova amb un plot de la variància front la mitjana i un *boxplot* de les dades cada 12 mesos (que és la freqüència de les nostres dades) que la variància, efectivament, no és constant.
 
-```{r echo = FALSE}
+```{r echo=FALSE, warning=FALSE}
 par(mfrow=c(1,2))
 m=apply(matrix(serie,nr=12),2,mean)
 v=apply(matrix(serie,nr=12),2,var)
 plot(m,v,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="Mean-Variance Plot")
 abline(lm(v~m),col=2,lty=3,lwd=2)
 
-boxplot(serie~floor(time(serie)))
+boxplot(serie~floor(time(serie)),
+        main = "Monthly Boxplot")
 ```
 
-Tal i com s'havia observat a simple vista, la variància augmenta a mesura que agumenta la mitja. Per tant, no podem assumir variància constant. Amb el *boxplot* es confirma aquesta hipòtesis. Així doncs, es procedeix a realitzar una transformació logarítmica de la sèrie per homogeneïtzar la variància. Els resultats obtinguts són els següents:
+Tal i com s'havia observat a simple vista, la variància augmenta a mesura que agumenta la mitja. Per tant, no podem assumir variància constant. Amb el *boxplot* es confirma aquesta hipòtesis.
+
+Així doncs, es procedeix a realitzar una transformació logarítmica (\textit{Box-Cox} amb $\lambda = 0$) de la sèrie per homogeneïtzar la variància. Els resultats obtinguts són els següents:
 
 ```{r echo = FALSE, warning=FALSE}
 logserie <- log(serie)
@@ -77,20 +84,33 @@ logserie <- log(serie)
 par(mfrow=c(1,2))
 logm=apply(matrix(logserie,nr=12),2,mean)
 logv=apply(matrix(logserie,nr=12),2,var)
-plot(logm,logv,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="Mean-Variance Plot")
+
+plot(logm,logv,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="(Log) Mean-Variance Plot")
 abline(lm(logv~logm),col=2,lty=3,lwd=2)
 
-boxplot(logserie~floor(time(logserie)))
+boxplot(logserie~floor(time(logserie)),
+        main = "(Log) Monthly Boxplot")
 ```
 
-S'observa que la variància s'ha homogeneïtzat, és a dir, ja es pot considerar constant.
+Veiem que encara hi ha una tendència creixent causada per un valor anormalment gran, si l'eliminem i tornem a fer el plot veiem que, en efecte, s'homogenitza la variància tal i com volíem.
+
+```{r echo=FALSE}
+logm <- logm[-which(logv > 0.2)]
+logv <- logv[-which(logv > 0.2)]
+plot(logm,logv,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="(Log) Mean-Variance Plot")
+abline(lm(logv~logm),col=2,lty=3,lwd=2)
+
+boxplot(logserie~floor(time(logserie)),
+        main = "(Log) Monthly Boxplot")
+```
+
+Ara la variància ja es pot considerar constant.
 
 ### Patró estacional
 
-En segon lloc, s'estudiarà l'existència d'un patró estacional en les nostres dades. En cas que hi sigui present, es realitzarà una diferenciació d'ordre 12, és a dir,
-
-$$ W_t = X_t - X_{t-12} = (1 - B^{12})X_t $$
-on $B$ és el *backshift operator*, per eliminar aquest patró. Es realitza un *monthplot* per comprovar-ne l'existència.
+En segon lloc, s'estudiarà l'existència d'un patró estacional en les nostres dades. En cas que hi sigui present, es realitzarà una diferenciació d'ordre 12 per eliminar aquest patró, és a dir,
+$$ W_t := X_t - X_{t-12} = (1 - B^{12})X_t $$
+on $B$ és el *backshift operator*. Es realitza un *monthplot* per comprovar-ne l'existència.
 
 ```{r echo = FALSE}
 monthplot(logserie)
@@ -100,10 +120,21 @@ Tal i com s'havia comenta, s'observa una clara pujada de la presència de turist
 
 ```{r echo = FALSE}
 d12logserie <- diff(logserie,12)
-monthplot(d12logserie)
+monthplot(d12logserie,
+          main = "Monthplot of logserie")
 ```
 
-S'observa que amb una diferenciació d'ordre 12 s'ha eliminat el patró estacional. Ara bé, la mitjana de la sèrie encara no és constant.
+S'observa que amb una diferenciació d'ordre 12 s'ha eliminat el patró estacional.
+
+```{r echo=FALSE}
+plot(d12logserie,
+     main = "Distance from value to mean of d12logserie",
+     ylab="Milions")
+abline(h = mean(d12logserie), col = 2)
+segments(time(d12logserie), d12logserie, time(d12logserie), mean(d12logserie), col = 3, lty = 3)
+```
+
+Ara bé, la mitjana de la sèrie encara no és constant.
 
 ### Mitjana constant
 
@@ -115,46 +146,80 @@ Es realitza la primera diferenciació. Els valors de mitjana i variància aconse
 
 ```{r echo = FALSE}
 d1d12logserie <- diff(d12logserie)
-plot(d1d12logserie)
-mean(d1d12logserie)
-var(d1d12logserie)
+plot(d1d12logserie,
+     main = "Distance from value to mean of d1d12logserie",
+     ylab="Milions")
+abline(h = mean(d1d12logserie), col = 2)
+segments(time(d1d12logserie), d1d12logserie, time(d1d12logserie), mean(d1d12logserie), col = 3, lty = 3)
+
+paste("Mean of d1d12logserie:", mean(d1d12logserie))
+paste("Variance of d1d12logserie:", var(d1d12logserie))
 ```
 
-Com es pot observar, la mitjana del procés diferenciat regularment un cop es pot considerar constant i nula. Ara bé, es mira de diferenciar un segon cop i s'observa que la variància augmenta i, per tant, es té *overdifferentiation*. 
+Com es pot observar, la mitjana del procés diferenciat regularment un cop es pot arribar a considerar constant i nula.
+
+Es mira de diferenciar un segon cop per veure si la variància augmenta i, per tant, hi ha *overdifferentiation*. 
 
 ```{r echo = FALSE}
 d1d1d12logserie <- diff(d1d12logserie)
-plot(d1d1d12logserie)
-mean(d1d1d12logserie)
-var(d1d1d12logserie)
+plot(d1d1d12logserie,
+     main = "Plot of d1d12logserie",
+     ylab="Milions")
+abline(h = mean(d1d12logserie), col = 2)
+
+df <- data.frame(d1d12logserie = integer(),
+                 d1d1d12logserie = integer())
+
+df <- rbind(df,
+            data.frame(d1d12logserie = mean(d1d12logserie),
+                       d1d1d12logserie = mean(d1d1d12logserie)))
+
+df <- rbind(df,
+            data.frame(d1d12logserie = var(d1d12logserie)[1],
+                       d1d1d12logserie = var(d1d1d12logserie)[1]))
+
+row.names(df) <- c("mean", "var")
+df
 ```
+
+S'observa que la variància augmenta. Així que ens quedarem amb la primera sèrie.
 
 En definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb una diferenciació d'ordre 12 per eliminar el patró estacional ($\texttt{d1d12logserie}$) és un procés estacionari de mitjana 0.
 
 ## ACF/PACF de les dades i proposta de models
 
-Tot seguit, es realitza un anàlisi de les funcions *AutoCorrelació* i de *Correlació Parcial* de la sèrie transformada, és a dir, de la sèrie estacionària.
+Tot seguit, es realitza un anàlisi de les funcions d'*AutoCorrelació* i de *Correlació Parcial* de la sèrie transformada, és a dir, de la sèrie estacionària.
 
 ```{r echo = FALSE}
 par(mfrow=c(1,2))
-acf(d1d12logserie,ylim=c(-1,1),col=c(2,rep(1,11)),lwd=2,lag.max=72)
-pacf(d1d12logserie,ylim=c(-1,1),col=c(rep(1,11),2),lwd=2,lag.max=72)
+acf(d1d12logserie,
+    ylim=c(-1,1),col=c(2,rep(1,11)),
+    lwd=2,lag.max=72,
+    main = "ACF de d1d12logserie")
+pacf(d1d12logserie,
+     ylim=c(-1,1),col=c(rep(1,11),2),
+     lwd=2,lag.max=72,
+     main = "PACF de d1d12logserie")
 par(mfrow=c(1,1))
 ```
 
 ### Models proposats per la part regular (p,d,q)
 
-En relació a la part regular de la sèrie, en la funció d'AutoCorrelació (ACF) s'observa un decreixement exponencial alternat en tots els valors. S'observen també valors fora de la banda de confiança en retards llunyans, però poden ser assignats a la aleatorietat del cas 5%. Per tant, en aquest cas, es proposaria $q=0$. En tot cas, si es volgués mirar d'incloure el primer valor que sobresurt més que la resta, es podria considerar també $q=1$.
+En relació a la part regular de la sèrie, en la funció d'AutoCorrelació (ACF) s'observa un decreixement exponencial alternat en tots els valors. S'observen també valors fora de la banda de confiança en retards llunyans, però poden ser assignats a la aleatorietat del cas 5%. Per tant, en aquest cas, es proposaria $q=0$ pel decreixement exponencial.
+
+En tot cas, si es volgués mirar d'incloure el primer valor que sobresurt més que la resta, es podria considerar també $q=1$.
 
 Pel que fa a la funció de Correlació Parcial (PACF) s'observa que els dos primers valors sobresurten més significativament que la resta. La resta de valors es poden considerar nuls, ja que o bé estan dintre de l'interval de confiança, o bé es poden assignar al cas d'aleatorietat del 5%. Per tant, per la part regular, es proposaria $p=2$.
 
-Donat que s'ha realitzat diferenciació 1 cop, es té que $d=1$. Per tant, els models proposats per la part regular serien $AR(2)$ o, en tot cas, $ARMA(1,1)$ sobre la sèrie transformada regular.
+Donat que s'ha realitzat diferenciació un cop, es té que $d=1$. Per tant, els models proposats per la part regular serien $AR(2)$ o, en tot cas, $ARMA(2,1)$ sobre la sèrie transformada regular.
 
 ### Models proposats per la part estacional (P,D,Q)
 
 En relació a la part estacional de la sèrie, en la funció d'AutoCorrelació (ACF) s'observa que el primer valor es força significatiu, però també ho són el tercer, el quart i el cinquè, sobretot el quart. Donat que volem intentar proposar un model simplificat, es proposa $Q=0$.
 
-Pel que fa a la funció de Correlació Parcial (PACF) s'observa que sobresurt el primer valor una mica i també sobresurten el tercer i el quart valor. Ara bé, no sobresurten de manera tant significativa com en el cas dels valors del ACF i, per tant, podem assignar-ho al cas d'aleatorietat del 5%. Per tant, en aquest cas, es proposaria $P=1$. En tot cas, es podria proposar $P=4$ per mirar d'incluir aquests valors que sobresurten de la banda de confiança.
+Pel que fa a la funció de Correlació Parcial (PACF) s'observa que sobresurt el primer valor una mica i també sobresurten el tercer i el quart valor lleugerament. Ara bé, no sobresurten de manera tant significativa com en el cas dels valors del ACF i, per tant, podem assignar-ho al cas d'aleatorietat del 5%.
+
+Per tant, en aquest cas, es proposaria $P=1$. En tot cas, es podria proposar $P=4$ per mirar d'incluir aquests valors que sobresurten de la banda de confiança.
 
 Donat que s'ha realitzat una diferenciació d'ordre 12 per eliminar el patró estacional, es té que $D=1$. Per tant, el model proposat per la part regular seria un $AR(1)$
 
@@ -162,15 +227,17 @@ Donat que s'ha realitzat una diferenciació d'ordre 12 per eliminar el patró es
 
 En conclusió, es proposen per la sèrie diferenciada els models estacionals:
 
--$ARMA(2,0)(1,0)_s$
--$ARMA(2,0)(4,0)_s$
--$ARMA(1,1)(1,0)_s$
+* $ARMA(2,0)(1,0)_s$
+* $ARMA(2,0)(4,0)_s$
+* $ARMA(2,1)(1,0)_s$
+* $ARMA(2,1)(4,0)_s$
 
 I per la sèrie original, tenint en compte les diferenciacions, es proposen:
 
--$ARIMA(2,1,0)(1,1,0)_{12}$
--$ARIMA(2,1,0)(4,1,0)_{12}$
--$ARIMA(1,1,1)(1,1,0)_{12}$
+* $ARIMA(2,1,0)(1,1,0)_{12}$
+* $ARIMA(2,1,0)(4,1,0)_{12}$
+* $ARIMA(2,1,1)(1,1,0)_{12}$
+* $ARIMA(2,1,1)(4,1,0)_{12}$
 
 # Estimació dels models
 
@@ -178,42 +245,79 @@ A continuació, s'estimen els coeficients dels dos models proposats i es mira qu
 
 $$ H_0: \theta_i = 0 $$
 $$ H_1: \theta_i \neq 0$$
-amb l'estadístic $$ \hat{t} = \frac{\hat{\theta}_i}{\text{se}(\hat{\theta}_i)} $$ ~ $$t-student_{T-k}$$, on k és el nombre total de paràmetres i T és el període. Ara bé, a la pràctica es diu que un coeficient és significant si $|\hat{t}| > 2$.
+amb l'estadístic
+$$ \hat{t} = \frac{\hat{\theta}_i}{\text{se}(\hat{\theta}_i)} \sim  t-\text{student}_{T-k}$$
+on $k$ és el nombre total de paràmetres i $T = 12$ és el període. Ara bé, a la pràctica es diu que un coeficient és significant si $|\hat{t}| > 2$.
 
 En primer lloc, s'estimen els coeficients dels models proposats, amb intercept i sense.
 ```{r, echo = FALSE}
 pdq.1 <- c(2, 1, 0)
-pdq.2 <- c(1, 1, 1)
+pdq.2 <- c(2, 1, 1)
 PDQ.1 <- c(1, 1, 0)
 PDQ.2 <- c(4, 1, 0)
 
-cat("######## ARIMA(2,1,0)(1,1,0) ########\n")
+cat("######## ARIMA(2,1,0)(0,1,0) ########\n")
 (mod.1.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(1,0,0), period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.1.int$coef/sqrt(diag(mod.1.int$var.coef)))>2
+
 (mod.1 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.1, period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.1$coef/sqrt(diag(mod.1$var.coef)))>2
 
 cat("\n")
 cat("######## ARIMA(2,1,0)(4,1,0) ########\n")
 (mod.2.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(4,0,0), period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.2.int$coef/sqrt(diag(mod.2.int$var.coef)))>2
+
 (mod.2 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.2, period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.2$coef/sqrt(diag(mod.2$var.coef)))>2
 
 cat("\n")
-cat("######## ARIMA(1,1,1)(1,1,0) ########\n")
-(mod.3.int <- arima(d1d12logserie, order=c(1,0,1), seasonal = list(order = c(1,0,0), period=12)))
-(mod.3 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.1, period=12)))
-```
-
-S'observa que, en cap dels casos, l'intercept no és significatiu i, per tant, es descarten els models amb aquest paràmetre. En el cas del model $ARIMA(2,1,0)(1,1,0)_{12}$, els tres coeficients són significatius. Ara bé, en l'altre model proposat, el model $ARIMA(2,1,0)(4,1,0)_{12}$, s'observa que el coeficient $\texttt{sar3}$ no és significatiu, però la resta de coeficients sí que ho són. Per últim, el model $ARIMA(1,1,1)(1,1,0)_{12}$ té el coeficient $\texttt{ar1}$ no significatiu i els altres dos significatius. 
-
-En termes de *loglikelihood* i de *AIC*, el model que sembla el millor és el model $ARIMA(2,1,0)(4,1,0)_{12}$, que és el millor tant en *AIC* com en *loglikelihood*. Dels altres dos models, donat que el $ARIMA(2,1,0)(1,1,0)_{12}$ té tots els coeficients significatus, es descarta el model $ARIMA(1,1,1)(1,1,0)_{12}$ tot i tenir una mica millor l'*AIC* i la *loglikelihood*. Així doncs, *a-priori*, s'escolliria el primer model $ARIMA(2,1,0)(4,1,0)_{12}$ com a millor model. Tot i així, es realitzarà la validació i la predicció dels dos models escollits en aquest pas.
-
-```{r echo = FALSE}
-abs(mod.1.int$coef/sqrt(diag(mod.1.int$var.coef)))>2
-abs(mod.1$coef/sqrt(diag(mod.1$var.coef)))>2
-abs(mod.2.int$coef/sqrt(diag(mod.2.int$var.coef)))>2
-abs(mod.2$coef/sqrt(diag(mod.2$var.coef)))>2
+cat("######## ARIMA(2,1,1)(0,1,0) ########\n")
+(mod.3.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(1,0,0), period=12)))
+cat("\nSignificance of the coefficients:\n")
 abs(mod.3.int$coef/sqrt(diag(mod.3.int$var.coef)))>2
+
+(mod.3 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.1, period=12)))
+cat("\nSignificance of the coefficients:\n")
 abs(mod.3$coef/sqrt(diag(mod.3$var.coef)))>2
+
+cat("\n")
+cat("######## ARIMA(2,1,1)(4,1,0) ########\n")
+(mod.4.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(4,0,0), period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.4.int$coef/sqrt(diag(mod.4.int$var.coef)))>2
+
+(mod.4 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.2, period=12)))
+cat("\nSignificance of the coefficients:\n")
+abs(mod.4$coef/sqrt(diag(mod.4$var.coef)))>2
 ```
+
+S'observa que, en cap dels casos, l'intercept no és significatiu i, per tant, es descarten els models amb aquest paràmetre.
+
+1. En el cas del model $ARIMA(2,1,0)(1,1,0)_{12}$, els tres coeficients són significatius.
+2. Al model $ARIMA(2,1,0)(4,1,0)_{12}$, s'observa que el \texttt{sar3}$ no és significatiu, però la resta de coeficients sí que ho són.
+3. El model $ARIMA(2,1,1)(1,1,0)_{12}$ té els coeficients $\texttt{ar1}, \texttt{ar2}$ no significatius i els altres dos significatius.
+4. El model $ARIMA(2,1,1)(4,1,0)_{12}$ té els coeficients $\texttt{ma1}, \texttt{sar3}$ no significatius i els altres significatius.
+
+```{r echo=FALSE}
+df <- data.frame(mod.1 = c(mod.1$aic, mod.1$loglik),
+                 mod.2 = c(mod.2$aic, mod.2$loglik),
+                 mod.3 = c(mod.3$aic, mod.3$loglik),
+                 mod.4 = c(mod.4$aic, mod.4$loglik))
+
+rownames(df) <- c("AIC", "log-likelihood")
+df
+```
+
+En termes de *loglikelihood* i de *AIC*, el model que sembla el millor és el segon model $ARIMA(2,1,0)(4,1,0)_{12}$, que és el millor tant en *AIC* com en *loglikelihood*.
+
+Dels altres dos models, donat que el $ARIMA(2,1,0)(1,1,0)_{12}$ té tots els coeficients significatus, es descarta el model $ARIMA(2,1,1)(1,1,0)_{12}$. Tot i tenir una mica millor la *loglikelihood*.
+
+Així doncs, *a-priori*, s'escolliria el primer model $ARIMA(2,1,0)(4,1,0)_{12}$ com a millor model. Tot i així, es realitzarà la validació i la predicció dels dos models escollits en aquest pas.
 
 # Validació dels Models
 
@@ -224,14 +328,12 @@ Tot seguit, es realitzarà la validació dels dos models proposat. En el procés
 Així doncs, en primer lloc, s'estudiaràn els residus del model i es comprovaran els següents aspectes:
 
 - Homogeneïtat de la variància residual ($\sigma_{Z}^2$ constant).
-- Normalitat ($Z_T$ ~ Normal).
-- Independència ($\rho(k) = 0 \, \, \forall k > 0$).
+- Normalitat ($Z_T \sim \mathcal{N}(0,\sigma^2_Z)$).
+- Independència ($\rho(k) = 0, \, \, \forall k > 0$).
 
 ### Homogeneïtat de la variància
 
 Per comprovar l'homogeneïtat de la variància dels residus, s'analitzen el plot dels mateixos residus, el plot de l'arrel quadrada del seu valor absolut i les funcions ACF i PACF del seu quadrat.
-
-En el cas del primer model ($\texttt{mod.1}$) no s'observa cap tipus de patró (ni creixent ni decreixent) en el plot dels residus o en el plot de l'arrel quadrada del seu valor absolut. A més, en l'ACF i el PACF del quadrat dels residus tots els valors estan dintre de la banda de confiança i, per tant, els podem considerar nuls.
 
 ```{r echo = FALSE}
 model = mod.1
@@ -251,7 +353,7 @@ pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1, main="Series res
 par(mfrow=c(1,1))
 ```
 
-En el cas del segon model ($\texttt{mod.1}$), es poden extreure les mateixes conclusions que en el primer model i, per tant, també es pot assumir homogeneïtat de variància residual.
+En el cas del primer model ($\texttt{mod.1}$) no s'observa cap tipus de patró (ni creixent ni decreixent) en el plot dels residus o en el plot de l'arrel quadrada del seu valor absolut. A més, en l'ACF i el PACF del quadrat dels residus tots els valors estan dintre de la banda de confiança i, per tant, els podem considerar nuls.
 
 ```{r echo = FALSE}
 model = mod.2
@@ -271,11 +373,11 @@ pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1, main="Series res
 par(mfrow=c(1,1))
 ```
 
+En el cas del segon model ($\texttt{mod.2}$), es poden extreure les mateixes conclusions que en el primer model i, per tant, també es pot assumir homogeneïtat de variància residual.
+
 ### Normalitat
 
 Per comprovar la normalitat dels residus dels models proposats s'estudiarà el Q-Q plot, l'histograma dels residus amb la normal que s'hauria de seguir sobreposada i es realitzarà el test de Sharipo-Wilks.
-
-En el cas del model $\texttt{mod.1}$, s'observa en el Q-Q plot que els quartils es situen sobre la línia dels quartils teòrics i que l'histograma s'ajusta a la distribució normal a la que s'hauria d'ajustar (tot i tenir les dues barres més grans una mica per fora de la corba normal). A més, el *p-value* del test de Sharipo-Wilks és $1.713 \times 10^{-05}$, menor que 0.05 i, per tant, es pot assumir la hipòtesi de normalitat en els residus.
 
 ```{r echo = FALSE}
 model = mod.1
@@ -295,7 +397,7 @@ curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
 print(shapiro.test(resid(model)))
 ```
 
-En el cas del model $\texttt{mod.2}$, les conclusions que s'extreuen són les mateixes. En aquest cas, el *p-value* és de $7.675 \times 10^{-05}$. Per tant, també assumim normalitat en aquest cas. En l'histograma, en aquest cas, només hi ha una barra que sobresurt de la corba normal.
+En el cas del model $\texttt{mod.1}$, s'observa en el Q-Q plot que els quartils es situen sobre la línia dels quartils teòrics i que l'histograma s'ajusta a la distribució normal a la que s'hauria d'ajustar (tot i tenir les dues barres més grans una mica per fora de la corba normal). A més, el *p-value* del test de Sharipo-Wilks és $1.713 \times 10^{-05}$, menor que 0.05 i, per tant, es pot assumir la hipòtesi de normalitat en els residus.
 
 ```{r echo = FALSE}
 model = mod.2
@@ -315,14 +417,35 @@ curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
 print(shapiro.test(resid(model)))
 ```
 
+En el cas del model $\texttt{mod.2}$, les conclusions que s'extreuen són les mateixes. En aquest cas, el *p-value* és de $9.53 \times 10^{-06}$. Per tant, també assumim normalitat en aquest cas. En l'histograma, en aquest cas, només hi ha una barra que sobresurt de la corba normal.
+
 ### Independència
 
-Per comprovar la independència residual, és a dir, que $\rho(k) = 0$ $\forall k > 0$ s'estudiarà el ACF i el PACF dels residus i es realitzarà el test de Ljung-Box.
-
-Pel que fa al primer model, en primer lloc observem que les funcions ACF i PACF prenen valors pràcticament iguals (menys alguns retards llunyans que en un són positius i en l'altre negatius, però estan dins la banda de confiança en els dos casos), cosa que ja fa intuïr que es complirà la independència. Els residus estandaritzats prenen valors dintre de la franja de (-2,2), la gran majoria, que és el comportament esperat. Ara bé, els *p-values* del test Ljung-Box tenen valors superiors a 0.05 en els primers retards però en els retards llunyans no es pot assumir la independència. Tot i així, donat que en els primers retards sí que es té independència, s'assumeix aquesta hipòtesi pel model.
+Per comprovar la independència en els residus buscarem que els coeficients de l'autocovariància $\rho(k) = 0$, $\forall k > 0$. S'estudiarà el ACF i el PACF dels residus i es realitzarà el test de Ljung-Box.
 
 ```{r echo = FALSE}
 model = mod.1
+
+s=frequency(get(model$series))
+resid=model$residuals
+
+#ACF & PACF of residuals
+par(mfrow=c(1,2))
+acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
+pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
+par(mfrow=c(1,1))
+
+#Ljung-Box p-values
+par(mar=c(2,2,1,1))
+tsdiag(model,gof.lag=7*s)
+```
+
+Pel que fa al primer model, en primer lloc observem que les funcions ACF i PACF prenen valors pràcticament iguals (menys alguns retards llunyans que en un són positius i en l'altre negatius, però estan dins la banda de confiança en els dos casos), cosa que ja fa intuïr que es complirà la independència.
+
+Els residus estandaritzats prenen valors dintre de la franja de (-2,2), la gran majoria, que és el comportament esperat. Ara bé, els *p-values* del test Ljung-Box tenen valors superiors a 0.05 en els primers retards però en els retards llunyans no es pot assumir la independència. Tot i així, donat que en els primers retards sí que es té independència, s'assumeix aquesta hipòtesi pel model.
+
+```{r echo = FALSE}
+model = mod.2
 
 s=frequency(get(model$series))
 resid=model$residuals
@@ -340,23 +463,6 @@ tsdiag(model,gof.lag=7*s)
 
 En el segon model, en canvi, observem més diferències entre les gràfiques del ACF i el PACF. Ara bé, en aquest cas els p-values del test de Ljung-Box estan **tots** per sobre de 0.05 i, per tant, podem assumir independència en tots els residus.
 
-```{r echo = FALSE}
-model = mod.2
-
-s=frequency(get(model$series))
-resid=model$residuals
-
-#ACF & PACF of residuals
-par(mfrow=c(1,2))
-acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
-pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
-par(mfrow=c(1,1))
-
-#Ljung-Box p-values
-par(mar=c(2,2,1,1))
-tsdiag(model,gof.lag=7*s)
-```
-
 ### Estacionaritat i invertibilitat dels models
 
 Per analitzar l'estacionaritat i la invertibilitat dels models proposats, s'expresaran els models com a models $AR(\infty)$ i $MA(\infty)$:
@@ -364,7 +470,9 @@ Per analitzar l'estacionaritat i la invertibilitat dels models proposats, s'expr
 $$ (1 - \phi_1B - \cdots - \phi_pB^p)X_t = (1 + \theta_1B + \cdots + \theta_qB^q)Z_t $$
 $$ AR(\infty): \quad \frac{1 - \phi_1B - \cdots - \phi_pB^p}{1 + \theta_1B + \cdots + \theta_qB^q}X_t = (1 - \pi_1B - \pi_2B - \cdots) X_t = Z_t$$
 $$ MA(\infty): \quad \frac{1 + \theta_1B + \cdots + \theta_qB^q}{1 - \phi_1B - \cdots - \phi_pB^p}Z_t = (1 + \psi_1B + \psi_2B + \cdots) Z_t = X_t$$
-A partir d'aquí el models seran *invertibles* si el mòdul de totes les arrels del polinomi característic $\theta_q(B) = 1 + \theta_1B + \cdots + \theta_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \pi_i^2 < \infty$. Per per altra banda, seran *estacionaris* si el mòdul de totes les arrels del polinomi característic $\phi_q(B) = 1 - \phi_1B - \cdots - \phi_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \psi_i^2 < \infty$.
+A partir d'aquí el models seran *invertibles* si el mòdul de totes les arrels del polinomi característic $\theta_q(B) = 1 + \theta_1B + \cdots + \theta_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \pi_i^2 < \infty$.
+
+Per per altra banda, seran *estacionaris* si el mòdul de totes les arrels del polinomi característic $\phi_q(B) = 1 - \phi_1B - \cdots - \phi_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \psi_i^2 < \infty$.
 
 En el cas del primer model, s'observa que es compleixen totes les condicions i, per tant, el $\texttt{mod.1}$ és estacionari i invertible.
 
@@ -395,7 +503,7 @@ cat("\n--------------------\n")
 print(pis[1:20])
 ```
 
-
+En el cas del segon model, també es compleix tot i, per tant, també és invertible i estacionari.
 
 ```{r echo = FALSE}
 model = mod.2
@@ -423,8 +531,6 @@ cat("\nPi-weights (AR(inf))\n")
 cat("\n--------------------\n")
 print(pis[1:20])
 ```
-
-En el cas del segon model, també es compleix tot i, per tant, també és invertible i estacionari.
 
 ### Comparació entre els ACF/PACF mostrals i els ACF/PACF teòrics
 
@@ -555,8 +661,6 @@ cat("\n")
 cat("###### Errors de predicció del model mod.2 ######\n")
 (mod.EQM1=sqrt(sum(((obs-pr)/obs)^2)/12))
 (mod.EAM1=sum(abs(obs-pr)/obs)/12)
-
-
 ```
 
 Com es pot veure, les prediccions (en vermell a la gràfica) de les últimes 12 observacions són semblants i prou bones, ja que en amdós casos s'apropen força a la realitat. A més, el valor real de les observacions (en negre a la gràfica) queda dins l'interval de confiança (en blau a la gràfica) dels valors predits. Per tant, es pot concloure que els models tenen bona capacitat de predicció. A més, els errors de predicció (l'**Error Quadràtic Mitjà** i l'**Error Absolut Mitjà**) dels dos models són semblants i molt petits (> 0.05 en ambdós casos).
@@ -624,7 +728,6 @@ data.frame(outliers,Fecha=paste(mesos[(outliers[,1]-1)%%12+1],start(logserie)[1]
 En el següent gràfic, es poden observar la gràfica amb els *outliers* (en negre) i la gràfica linealitzada, és a dir, sense *outliers* (en vermell). S'observa com hi ha outliers que han provocat que la sèrie tingui valors més baixos i outliers que han provocat que la sèrie tingui valors més alts. El fet que crida més l'atenció és que, a causa dels outliers, la sèrie des del 2005 (sobretot a partir del 2008) té valors més baixos del que hauria de tenir (s'observen els pics negres per sota dels vermells).
 
 ```{r echo = FALSE}
-
 ##Comparaci?n serie observada con la serie linealizada (sin at?picos)
 logserie.lin=lineal(logserie,mod.outliers$atip)
 serie.lin=exp(logserie.lin)
@@ -652,7 +755,6 @@ Pel que fa a la part estacional, l'anàlisi és molt semblant al de la sèrie se
 
 ```{r echo = FALSE}
 ##Identificació del model per la sèrie linealitzada
-
 d1d12logserie.lin=diff(diff(logserie.lin,12))
 par(mfrow=c(1,2))
 acf(d1d12logserie.lin,ylim=c(-1,1),lag.max=72,col=c(2,rep(1,11)),lwd=2)
@@ -664,7 +766,6 @@ Ara bé, a diferència del que s'ha vist anteriorment, en aquest cas surten no s
 
 ```{r echo = FALSE}
 ##Estimació del model per la sèrie linealitzada
-
 (mod.lin=arima(logserie.lin,order=pdq.1,seasonal=list(order=PDQ.2,period=12)))
 abs(mod.lin$coef/sqrt(diag(mod.lin$var.coef)))>2
 ```
@@ -792,5 +893,3 @@ head(resul)
 # Comentaris finals
 
 Així doncs, un com realitzat aquest anàlisi, es conclou que la presència de valors atípics en una sèrie pot influir (i molt) en les previsions que pugui fer un model basant-se en ella. Per tant, es confirma la importància de la seva detecció i correcció. Pel que fa a les previsions de la sèrie, sembla que la tendència general de creixement es mantindrà, així com també el patró estacional (és a dir, que Espanya tenint un munt de turistes a l'estiu).
-
-(En l'apartat de models proposats, s'ha volgut proposar també un $ARIMA(1,1,1)(4,1,0)_{12}$, però per problemes del *R* no s'ha pogut calcular.)
