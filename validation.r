@@ -19,18 +19,17 @@ validation = function(model, dades){
   hist(resid,breaks=20,freq=FALSE)
   curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
   
-  
   #ACF & PACF of residuals
-  par(mfrow=c(1,2))
+  par(mfrow=c(2,2))
   acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
   pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
-  par(mfrow=c(1,1))
-  
+
   #ACF & PACF of square residuals 
-  par(mfrow=c(1,2))
   acf(resid^2,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
   pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
   par(mfrow=c(1,1))
+  
+  cat("\n--------------------------------------------------------------------\n\n")
   
   #Ljung-Box p-values
   par(mar=c(2,2,1,1))
@@ -39,10 +38,11 @@ validation = function(model, dades){
   print(model)
   
   #Stationary and Invertible
-  cat("\nModul of AR Characteristic polynomial Roots: ", 
-      Mod(polyroot(c(1,-model$model$phi))),"\n")
-  cat("\nModul of MA Characteristic polynomial Roots: ",
-      Mod(polyroot(c(1,model$model$theta))),"\n")
+  cat("\nModul of AR Characteristic polynomial Roots:\n")
+  Mod(polyroot(c(1,-model$model$phi)))
+  
+  cat("\nModul of MA Characteristic polynomial Roots:\n")
+  Mod(polyroot(c(1,model$model$theta)))
   
   #Model expressed as an MA infinity (psi-weights)
   psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)

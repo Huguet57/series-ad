@@ -24,7 +24,8 @@ En aquest estudi, es realitzarà l'anàlisi de l'entrada turística a Espanya de
 
 ## Representació gràfica de les dades
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
+knitr::opts_chunk$set(error = TRUE)
 serie<-ts(read.table("./data/EntradTur.dat")/1000000,start=2000,freq=12)
 plot(serie,main="Entrada Turística a Espanya",ylab="Milions")
 abline(v=1999:2019,col=4,lty=3)
@@ -45,7 +46,7 @@ on:
 * $C_t$ és el **cicle** de la sèrie (patró repetit periòdicament amb període no constant). Aquesta part no surt representada en la descomposició.
 * $\omega_t$ és el soroll aleatòri.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 plot(decompose(serie))
 ```
 
@@ -63,7 +64,7 @@ A continuació s'analitzarà la necessitat de realitzar una sèrie de transforma
 
 En primer lloc, s'estudiarà si es pot considerar que la variància de les dades sigui constant en el temps. Es comprova amb un plot de la variància front la mitjana i un *boxplot* de les dades cada 12 mesos (que és la freqüència de les nostres dades) que la variància, efectivament, no és constant.
 
-```{r echo=FALSE, warning=FALSE}
+```{r, fig.align="center",  echo=FALSE, warning=FALSE}
 par(mfrow=c(1,2))
 m=apply(matrix(serie,nr=12),2,mean)
 v=apply(matrix(serie,nr=12),2,var)
@@ -78,7 +79,7 @@ Tal i com s'havia observat a simple vista, la variància augmenta a mesura que a
 
 Així doncs, es procedeix a realitzar una transformació logarítmica (\textit{Box-Cox} amb $\lambda = 0$) de la sèrie per homogeneïtzar la variància. Els resultats obtinguts són els següents:
 
-```{r echo = FALSE, warning=FALSE}
+```{r, fig.align="center",  echo = FALSE, warning=FALSE}
 logserie <- log(serie)
 
 par(mfrow=c(1,2))
@@ -94,7 +95,7 @@ boxplot(logserie~floor(time(logserie)),
 
 Veiem que encara hi ha una tendència creixent causada per un valor anormalment gran, si l'eliminem i tornem a fer el plot veiem que, en efecte, s'homogenitza la variància tal i com volíem.
 
-```{r echo=FALSE}
+```{r, fig.align="center",  echo=FALSE}
 logm <- logm[-which(logv > 0.2)]
 logv <- logv[-which(logv > 0.2)]
 plot(logm,logv,xlab="Mitjanes anuals",ylab="Variàncies anuals",main="(Log) Mean-Variance Plot")
@@ -112,13 +113,13 @@ En segon lloc, s'estudiarà l'existència d'un patró estacional en les nostres 
 $$ W_t := X_t - X_{t-12} = (1 - B^{12})X_t $$
 on $B$ és el *backshift operator*. Es realitza un *monthplot* per comprovar-ne l'existència.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 monthplot(logserie)
 ```
 
 Tal i com s'havia comenta, s'observa una clara pujada de la presència de turistes durant els mesos d'estiu i una baixada en picat en l'entrada de l'hivern/tardor. Així doncs, és necessària una diferenciació d'ordre 12 per eliminar aquest patró.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 d12logserie <- diff(logserie,12)
 monthplot(d12logserie,
           main = "Monthplot of logserie")
@@ -126,7 +127,7 @@ monthplot(d12logserie,
 
 S'observa que amb una diferenciació d'ordre 12 s'ha eliminat el patró estacional.
 
-```{r echo=FALSE}
+```{r, fig.align="center",  echo=FALSE}
 plot(d12logserie,
      main = "Distance from value to mean of d12logserie",
      ylab="Milions")
@@ -144,7 +145,7 @@ $$ W_t = X_t - X_{t-1} = (1 - B)X_t $$
 
 Es realitza la primera diferenciació. Els valors de mitjana i variància aconseguits són els seguents:
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 d1d12logserie <- diff(d12logserie)
 plot(d1d12logserie,
      main = "Distance from value to mean of d1d12logserie",
@@ -160,7 +161,7 @@ Com es pot observar, la mitjana del procés diferenciat regularment un cop es po
 
 Es mira de diferenciar un segon cop per veure si la variància augmenta i, per tant, hi ha *overdifferentiation*. 
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 d1d1d12logserie <- diff(d1d12logserie)
 plot(d1d1d12logserie,
      main = "Plot of d1d12logserie",
@@ -190,7 +191,7 @@ En definitiva, la sèrie transformada pel logaritme, diferenciada un cop i amb u
 
 Tot seguit, es realitza un anàlisi de les funcions d'*AutoCorrelació* i de *Correlació Parcial* de la sèrie transformada, és a dir, de la sèrie estacionària.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 par(mfrow=c(1,2))
 acf(d1d12logserie,
     ylim=c(-1,1),col=c(2,rep(1,11)),
@@ -250,48 +251,52 @@ $$ \hat{t} = \frac{\hat{\theta}_i}{\text{se}(\hat{\theta}_i)} \sim  t-\text{stud
 on $k$ és el nombre total de paràmetres i $T = 12$ és el període. Ara bé, a la pràctica es diu que un coeficient és significant si $|\hat{t}| > 2$.
 
 En primer lloc, s'estimen els coeficients dels models proposats, amb intercept i sense.
-```{r, echo = FALSE}
+```{r, fig.align="center", , echo = FALSE}
 pdq.1 <- c(2, 1, 0)
 pdq.2 <- c(2, 1, 1)
 PDQ.1 <- c(1, 1, 0)
 PDQ.2 <- c(4, 1, 0)
 
 cat("######## ARIMA(2,1,0)(0,1,0) ########\n")
-(mod.1.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(1,0,0), period=12)))
+mod.1.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(1,0,0), period=12))
+mod.1 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.1, period=12))
+
 cat("\nSignificance of the coefficients:\n")
 abs(mod.1.int$coef/sqrt(diag(mod.1.int$var.coef)))>2
 
-(mod.1 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.1, period=12)))
 cat("\nSignificance of the coefficients:\n")
 abs(mod.1$coef/sqrt(diag(mod.1$var.coef)))>2
 
 cat("\n")
 cat("######## ARIMA(2,1,0)(4,1,0) ########\n")
-(mod.2.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(4,0,0), period=12)))
+mod.2.int <- arima(d1d12logserie, order=c(2,0,0), seasonal = list(order = c(4,0,0), period=12))
+mod.2 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.2, period=12))
+
 cat("\nSignificance of the coefficients:\n")
 abs(mod.2.int$coef/sqrt(diag(mod.2.int$var.coef)))>2
 
-(mod.2 <- arima(logserie, order=pdq.1, seasonal = list(order = PDQ.2, period=12)))
 cat("\nSignificance of the coefficients:\n")
 abs(mod.2$coef/sqrt(diag(mod.2$var.coef)))>2
 
 cat("\n")
 cat("######## ARIMA(2,1,1)(0,1,0) ########\n")
-(mod.3.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(1,0,0), period=12)))
+mod.3.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(1,0,0), period=12))
+mod.3 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.1, period=12))
+
 cat("\nSignificance of the coefficients:\n")
 abs(mod.3.int$coef/sqrt(diag(mod.3.int$var.coef)))>2
 
-(mod.3 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.1, period=12)))
 cat("\nSignificance of the coefficients:\n")
 abs(mod.3$coef/sqrt(diag(mod.3$var.coef)))>2
 
 cat("\n")
 cat("######## ARIMA(2,1,1)(4,1,0) ########\n")
-(mod.4.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(4,0,0), period=12)))
+mod.4.int <- arima(d1d12logserie, order=c(2,0,1), seasonal = list(order = c(4,0,0), period=12))
+mod.4 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.2, period=12))
+
 cat("\nSignificance of the coefficients:\n")
 abs(mod.4.int$coef/sqrt(diag(mod.4.int$var.coef)))>2
 
-(mod.4 <- arima(logserie, order=pdq.2, seasonal = list(order = PDQ.2, period=12)))
 cat("\nSignificance of the coefficients:\n")
 abs(mod.4$coef/sqrt(diag(mod.4$var.coef)))>2
 ```
@@ -299,18 +304,47 @@ abs(mod.4$coef/sqrt(diag(mod.4$var.coef)))>2
 S'observa que, en cap dels casos, l'intercept no és significatiu i, per tant, es descarten els models amb aquest paràmetre.
 
 1. En el cas del model $ARIMA(2,1,0)(1,1,0)_{12}$, els tres coeficients són significatius.
-2. Al model $ARIMA(2,1,0)(4,1,0)_{12}$, s'observa que el \texttt{sar3}$ no és significatiu, però la resta de coeficients sí que ho són.
+2. Al model $ARIMA(2,1,0)(4,1,0)_{12}$, s'observa que el $\texttt{sar3}$ no és significatiu, però la resta de coeficients sí que ho són.
 3. El model $ARIMA(2,1,1)(1,1,0)_{12}$ té els coeficients $\texttt{ar1}, \texttt{ar2}$ no significatius i els altres dos significatius.
 4. El model $ARIMA(2,1,1)(4,1,0)_{12}$ té els coeficients $\texttt{ma1}, \texttt{sar3}$ no significatius i els altres significatius.
 
-```{r echo=FALSE}
-df <- data.frame(mod.1 = c(mod.1$aic, mod.1$loglik),
-                 mod.2 = c(mod.2$aic, mod.2$loglik),
-                 mod.3 = c(mod.3$aic, mod.3$loglik),
-                 mod.4 = c(mod.4$aic, mod.4$loglik))
+```{r, fig.align="center",  echo=FALSE, message=FALSE, warning=FALSE}
+models.df <- data.frame(sigma2 = integer(),
+                        loglikelihood = integer(),
+                        AIC = integer())
 
-rownames(df) <- c("AIC", "log-likelihood")
-df
+models.df <- rbind(models.df,
+                   data.frame(sigma2 = mod.1.int$sigma2,
+                              loglikelihood = mod.1.int$loglik,
+                              AIC = mod.1.int$aic),
+                   data.frame(sigma2 = mod.1$sigma2,
+                              loglikelihood = mod.1$loglik,
+                              AIC = mod.1$aic),
+                   data.frame(sigma2 = mod.2.int$sigma2,
+                              loglikelihood = mod.2.int$loglik,
+                              AIC = mod.2.int$aic),
+                   data.frame(sigma2 = mod.2$sigma2,
+                              loglikelihood = mod.2$loglik,
+                              AIC = mod.2$aic),
+                   data.frame(sigma2 = mod.3$sigma2,
+                              loglikelihood = mod.3$loglik,
+                              AIC = mod.3$aic),
+                   data.frame(sigma2 = mod.3.int$sigma2,
+                              loglikelihood = mod.3.int$loglik,
+                              AIC = mod.3.int$aic),
+                   data.frame(sigma2 = mod.4$sigma2,
+                              loglikelihood = mod.4$loglik,
+                              AIC = mod.4$aic),
+                   data.frame(sigma2 = mod.4.int$sigma2,
+                              loglikelihood = mod.4.int$loglik,
+                              AIC = mod.4.int$aic)
+                   )
+
+rownames(models.df) <- c("mod.1.int", "mod.1",
+                         "mod.2.int", "mod.2",
+                         "mod.3.int", "mod.3",
+                         "mod.4.int", "mod.4")
+models.df
 ```
 
 En termes de *loglikelihood* i de *AIC*, el model que sembla el millor és el segon model $ARIMA(2,1,0)(4,1,0)_{12}$, que és el millor tant en *AIC* com en *loglikelihood*.
@@ -335,7 +369,7 @@ Així doncs, en primer lloc, s'estudiaràn els residus del model i es comprovara
 
 Per comprovar l'homogeneïtat de la variància dels residus, s'analitzen el plot dels mateixos residus, el plot de l'arrel quadrada del seu valor absolut i les funcions ACF i PACF del seu quadrat.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.1
 
 s=frequency(get(model$series))
@@ -355,7 +389,7 @@ par(mfrow=c(1,1))
 
 En el cas del primer model ($\texttt{mod.1}$) no s'observa cap tipus de patró (ni creixent ni decreixent) en el plot dels residus o en el plot de l'arrel quadrada del seu valor absolut. A més, en l'ACF i el PACF del quadrat dels residus tots els valors estan dintre de la banda de confiança i, per tant, els podem considerar nuls.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.2
 
 s=frequency(get(model$series))
@@ -379,7 +413,7 @@ En el cas del segon model ($\texttt{mod.2}$), es poden extreure les mateixes con
 
 Per comprovar la normalitat dels residus dels models proposats s'estudiarà el Q-Q plot, l'histograma dels residus amb la normal que s'hauria de seguir sobreposada i es realitzarà el test de Sharipo-Wilks.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.1
 
 s=frequency(get(model$series))
@@ -399,7 +433,7 @@ print(shapiro.test(resid(model)))
 
 En el cas del model $\texttt{mod.1}$, s'observa en el Q-Q plot que els quartils es situen sobre la línia dels quartils teòrics i que l'histograma s'ajusta a la distribució normal a la que s'hauria d'ajustar (tot i tenir les dues barres més grans una mica per fora de la corba normal). A més, el *p-value* del test de Sharipo-Wilks és $1.713 \times 10^{-05}$, menor que 0.05 i, per tant, es pot assumir la hipòtesi de normalitat en els residus.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.2
 
 s=frequency(get(model$series))
@@ -423,7 +457,7 @@ En el cas del model $\texttt{mod.2}$, les conclusions que s'extreuen són les ma
 
 Per comprovar la independència en els residus buscarem que els coeficients de l'autocovariància $\rho(k) = 0$, $\forall k > 0$. S'estudiarà el ACF i el PACF dels residus i es realitzarà el test de Ljung-Box.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.1
 
 s=frequency(get(model$series))
@@ -444,7 +478,7 @@ Pel que fa al primer model, en primer lloc observem que les funcions ACF i PACF 
 
 Els residus estandaritzats prenen valors dintre de la franja de (-2,2), la gran majoria, que és el comportament esperat. Ara bé, els *p-values* del test Ljung-Box tenen valors superiors a 0.05 en els primers retards però en els retards llunyans no es pot assumir la independència. Tot i així, donat que en els primers retards sí que es té independència, s'assumeix aquesta hipòtesi pel model.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.2
 
 s=frequency(get(model$series))
@@ -466,27 +500,28 @@ En el segon model, en canvi, observem més diferències entre les gràfiques del
 ### Estacionaritat i invertibilitat dels models
 
 Per analitzar l'estacionaritat i la invertibilitat dels models proposats, s'expresaran els models com a models $AR(\infty)$ i $MA(\infty)$:
-
 $$ (1 - \phi_1B - \cdots - \phi_pB^p)X_t = (1 + \theta_1B + \cdots + \theta_qB^q)Z_t $$
 $$ AR(\infty): \quad \frac{1 - \phi_1B - \cdots - \phi_pB^p}{1 + \theta_1B + \cdots + \theta_qB^q}X_t = (1 - \pi_1B - \pi_2B - \cdots) X_t = Z_t$$
 $$ MA(\infty): \quad \frac{1 + \theta_1B + \cdots + \theta_qB^q}{1 - \phi_1B - \cdots - \phi_pB^p}Z_t = (1 + \psi_1B + \psi_2B + \cdots) Z_t = X_t$$
-A partir d'aquí el models seran *invertibles* si el mòdul de totes les arrels del polinomi característic $\theta_q(B) = 1 + \theta_1B + \cdots + \theta_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \pi_i^2 < \infty$.
+A partir d'aquí el models seran *invertibles* si el mòdul de totes les arrels del polinomi característic $\theta_q(B) = 1 + \theta_1B + \cdots + \theta_qB^q$ és major que 1, és a dir, si
+$$\sum_{i\geq 0} \pi_i^2 < \infty$$
 
-Per per altra banda, seran *estacionaris* si el mòdul de totes les arrels del polinomi característic $\phi_q(B) = 1 - \phi_1B - \cdots - \phi_qB^q$ és major que 1, és a dir, si $\sum_{i\geq 0} \psi_i^2 < \infty$.
+Per per altra banda, seran *estacionaris* si el mòdul de totes les arrels del polinomi característic $\phi_q(B) = 1 - \phi_1B - \cdots - \phi_qB^q$ és major que 1, és a dir, si
+$$\sum_{i\geq 0} \psi_i^2 < \infty$$
 
 En el cas del primer model, s'observa que es compleixen totes les condicions i, per tant, el $\texttt{mod.1}$ és estacionari i invertible.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.1
 
 s=frequency(get(model$series))
 resid=model$residuals
 
 #Stationary and Invertible
-cat("\nModul of AR Characteristic polynomial Roots: ", 
-    Mod(polyroot(c(1,-model$model$phi))),"\n")
-cat("\nModul of MA Characteristic polynomial Roots: ",
-    Mod(polyroot(c(1,model$model$theta))),"\n")
+cat("\nModul of AR Characteristic polynomial Roots:\n") 
+Mod(polyroot(c(1,-model$model$phi)))
+cat("\nModul of MA Characteristic polynomial Roots:\n")
+Mod(polyroot(c(1,model$model$theta)))
 
 #Model expressed as an MA infinity (psi-weights)
 psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
@@ -505,17 +540,18 @@ print(pis[1:20])
 
 En el cas del segon model, també es compleix tot i, per tant, també és invertible i estacionari.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.2
 
 s=frequency(get(model$series))
 resid=model$residuals
 
 #Stationary and Invertible
-cat("\nModul of AR Characteristic polynomial Roots: ", 
-    Mod(polyroot(c(1,-model$model$phi))),"\n")
-cat("\nModul of MA Characteristic polynomial Roots: ",
-    Mod(polyroot(c(1,model$model$theta))),"\n")
+cat("\nModul of AR Characteristic polynomial Roots:\n")
+Mod(polyroot(c(1,-model$model$phi)))
+
+cat("\nModul of MA Characteristic polynomial Roots:\n")
+Mod(polyroot(c(1,model$model$theta)))
 
 #Model expressed as an MA infinity (psi-weights)
 psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
@@ -536,7 +572,7 @@ print(pis[1:20])
 
 Per últim, comparem els valors del ACF i el PACF de les dades amb els valors teòric. S'observa que, en el cas del model $\texttt{mod.2}$, els valors teòrics s'aproximen gairebé perfectament als valors mostrals. En el cas del segon model també es podria dir el mateix. Per tant, ambdós models s'aproximen als valors de ACF/PACF de les mostres, potser una mica millor el $\texttt{mod.2}$ (ja que té més coeficients per calcular els valors teòrics).
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 model = mod.1
 dades = d1d12logserie
 
@@ -580,7 +616,7 @@ par(mfrow=c(1,1))
 
 Per comprovar l'estabilitat dels models proposats, calculem els models de la serie ocultant les 12 últimes observacions, és a dir, l'últim període d'observacions. Així doncs, s'observa que el valor dels coeficients varia molt poc, de l'ordre de menys de 0.02 en gairebé tots els casos. Per tant, podem confirmar que els models són estables.
 
-```{r echo = FALSE, warning = FALSE}
+```{r, fig.align="center",  echo = FALSE, warning = FALSE}
 ultim=c(2017,12)
 
 serie1=window(serie,end=ultim+c(1,0))
@@ -591,24 +627,35 @@ lnserie2=log(serie2)
 cat("########## Model ARIMA(2,1,0)(1,1,0)12 amb i sense les 12 últimes observacions ##########")
 cat("\n")
 
-(mod11 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
-(mod12 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.1, period=12)))
+mod11 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.1, period=12))
+mod12 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.1, period=12))
 
-cat("\n")
+mod1.coefs <- rbind(mod11$coef, mod12$coef,
+                    abs(mod11$coef - mod12$coef),
+                    abs(mod11$coef/sqrt(diag(mod11$var.coef)))>2)
+rownames(mod1.coefs) <- c("mod.1.full", "mod.1.cut", "abs.diff", "significance")
+mod1.coefs
+
 cat("\n")
 
 cat("########## Model ARIMA(2,1,0)(4,1,0)12 amb i sense les 12 últimes observacions ##########")
 cat("\n")
 
-(mod21 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.2, period=12)))
-(mod22 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.2, period=12)))
+mod21 <- arima(lnserie1, order=pdq.1, seasonal=list(order=PDQ.2, period=12))
+mod22 <- arima(lnserie2, order=pdq.1, seasonal=list(order=PDQ.2, period=12))
+
+mod2.coefs <- rbind(mod21$coef, mod22$coef,
+                    abs(mod21$coef - mod22$coef),
+                    abs(mod21$coef/sqrt(diag(mod22$var.coef)))>2)
+rownames(mod2.coefs) <- c("mod.2.full", "mod.2.cut", "abs.diff", "significance")
+mod2.coefs
 ```
 
 ## Capacitat de predicció
 
 A continuació s'avaluarà la capacitat de predicció dels dos models proposats fent-los predir el valor de les 12 útlimes observacions utilitzant la resta d'observacions conegudes.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 #mod.1
 
 pred=predict(mod12,n.ahead=12)
@@ -627,14 +674,17 @@ ts.plot(serie,tl,tu,pr,
         type="o",main="Model mod.1 ARIMA(2,1,0)(1,1,0)12")
 abline(v=(ultim[1]-3):(ultim[1]+2),lty=3,col=4)
 
-(previs=window(cbind(tl,pr,tu,serie,error=round(serie-pr,3)),start=ultim))
+previs=window(cbind(tl,pr,tu,serie,error=round(serie-pr,3)),start=ultim)
 
 obs=window(serie,start=ultim)
+
 cat("\n")
 cat("###### Errors de predicció del model mod.1 ######\n")
-(mod.EQM1=sqrt(sum(((obs-pr)/obs)^2)/12))
-(mod.EAM1=sum(abs(obs-pr)/obs)/12)
+mod.EQM1=sqrt(sum(((obs-pr)/obs)^2)/12)
+mod.EAM1=sum(abs(obs-pr)/obs)/12
 
+data.frame(mod.EQM1 = mod.EQM1,
+           mod.EAM1 = mod.EAM1)
 
 #mod.2
 
@@ -654,13 +704,17 @@ ts.plot(serie,tl,tu,pr,
         type="o",main="Model mod.2 ARIMA(2,1,1)(4,1,0)12")
 abline(v=(ultim[1]-3):(ultim[1]+2),lty=3,col=4)
 
-(previs=window(cbind(tl,pr,tu,serie,error=round(serie-pr,3)),start=ultim))
+previs=window(cbind(tl,pr,tu,serie,error=round(serie-pr,3)),start=ultim)
 
 obs=window(serie,start=ultim)
+
 cat("\n")
 cat("###### Errors de predicció del model mod.2 ######\n")
-(mod.EQM1=sqrt(sum(((obs-pr)/obs)^2)/12))
-(mod.EAM1=sum(abs(obs-pr)/obs)/12)
+mod.EQM2=sqrt(sum(((obs-pr)/obs)^2)/12)
+mod.EAM2=sum(abs(obs-pr)/obs)/12
+
+data.frame(mod.EQM2 = mod.EQM2,
+           mod.EAM2 = mod.EAM2)
 ```
 
 Com es pot veure, les prediccions (en vermell a la gràfica) de les últimes 12 observacions són semblants i prou bones, ja que en amdós casos s'apropen força a la realitat. A més, el valor real de les observacions (en negre a la gràfica) queda dins l'interval de confiança (en blau a la gràfica) dels valors predits. Per tant, es pot concloure que els models tenen bona capacitat de predicció. A més, els errors de predicció (l'**Error Quadràtic Mitjà** i l'**Error Absolut Mitjà**) dels dos models són semblants i molt petits (> 0.05 en ambdós casos).
@@ -678,17 +732,28 @@ A continuació, s'utilitza el model escollit $ARIMA(0,1,1)(1,1,0)_{12}$ per pred
 
 A més, els intervals de confiança també segueixen aquestes tendències estacionals.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##### Previsions a llarg termini amb el model complet ######
 mod <- mod.2
-pred=predict(mod,n.ahead=12)
-pr<-ts(c(tail(logserie,1),pred$pred),start=ultim+c(1,0),freq=12)
-se<-ts(c(0,pred$se),start=ultim+c(1,0),freq=12)
+pred <- predict(mod,
+                n.ahead=12)
+pr <- ts(c(tail(logserie,1), pred$pred),
+         start=ultim + c(1,-1),
+         freq=12)
+se <- ts(c(0,pred$se),
+         start=ultim + c(1,-1),
+         freq=12)
 
 #Intervals
-tl1<-ts(exp(pr-1.96*se),start=ultim+c(1,0),freq=12)
-tu1<-ts(exp(pr+1.96*se),start=ultim+c(1,0),freq=12)
-pr1<-ts(exp(pr),start=ultim+c(1,0),freq=12)
+tl1<-ts(exp(pr-1.96*se),
+        start=ultim + c(1,-1),
+        freq=12)
+tu1<-ts(exp(pr+1.96*se),
+        start=ultim + c(1,-1),
+        freq=12)
+pr1<-ts(exp(pr),
+        start=ultim + c(1,-1),
+        freq=12)
 
 ts.plot(serie,tl1,tu1,pr1,
         lty=c(1,2,2,1), col=c(1,4,4,2), xlim=c(ultim[1]-2,ultim[1]+3),
@@ -696,8 +761,8 @@ ts.plot(serie,tl1,tu1,pr1,
 abline(v=(ultim[1]-2):(ultim[1]+3),lty=3,col=4)
 ```
 
-```{r echo = FALSE}
-(previs1=window(cbind(tl1,pr1,tu1),start=ultim+c(1,0)))
+```{r, fig.align="center",  echo=FALSE, warning=FALSE}
+(previs1=window(cbind(tl1,pr1,tu1), start=ultim))
 ```
 
 # Tractament de *outliers*
@@ -710,7 +775,7 @@ Per acabar l'anàlisi d'aquesta serie, es centrarà l'atenció en la detecció i
 
 A continuació es mostren els *outliers* detectats, així com la seva influència sobre les dades i la data en què tenen aquest efecte. S'observa que tenim 10 valors atípics en total, dels quals la majoria són puntuals (6 són AO), 2 són TC i tenim 2 LS. L'*outlier* que més efecte ha tingut és del març del 2002, que ha tingut a més un efecte positiu, és a dir, ha fet créixer la sèrie, tot i només afectar a aquell període, ja que era era de tipus AO. En segon lloc, tenim un del tipus LS a l'abril del 2008. Aquest últim es podria associar perfectament a l'entrada en crisi econòmica del pais.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 source("./airbcn/atipics2.R")
 
 # Detecció outliers
@@ -720,6 +785,8 @@ mod.outliers=outdetec(mod,dif=c(1,12),crit=2.8,LS=T)
 outliers=mod.outliers$atip[order(mod.outliers$atip[,1]),]
 mesos=c("Gen","Feb","Març","Abr","Maig","Juny","Jul","Ago","Sep","Oct","Nov","Dic")
 data.frame(outliers,Fecha=paste(mesos[(outliers[,1]-1)%%12+1],start(logserie)[1]+((outliers[,1]-1)%/%12)))
+
+cat("Sigma^2 of the model with outliers: ")
 mod.outliers$sigma2
 
 data.frame(outliers,Fecha=paste(mesos[(outliers[,1]-1)%%12+1],start(logserie)[1]+((outliers[,1]-1)%/%12)),perc.Obs=exp(outliers[,3])*100)
@@ -727,7 +794,7 @@ data.frame(outliers,Fecha=paste(mesos[(outliers[,1]-1)%%12+1],start(logserie)[1]
 
 En el següent gràfic, es poden observar la gràfica amb els *outliers* (en negre) i la gràfica linealitzada, és a dir, sense *outliers* (en vermell). S'observa com hi ha outliers que han provocat que la sèrie tingui valors més baixos i outliers que han provocat que la sèrie tingui valors més alts. El fet que crida més l'atenció és que, a causa dels outliers, la sèrie des del 2005 (sobretot a partir del 2008) té valors més baixos del que hauria de tenir (s'observen els pics negres per sota dels vermells).
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##Comparaci?n serie observada con la serie linealizada (sin at?picos)
 logserie.lin=lineal(logserie,mod.outliers$atip)
 serie.lin=exp(logserie.lin)
@@ -741,7 +808,7 @@ lines(logserie)
 
 Per veure més clar l'efecte dels outliers, s'exposa la gràfica dels valors de la sèrie menys els valos de la sèrie linealitzada. Com es pot veure, l'abril del 2008 hi ha un *outlier* de tipus LS que fa que la sèrie agafi valors més petits des d'aquesta data en endavant. Crida l'atenció també els pics amunt i avall del principi de la sèrie, a les dates de març del 2002 i abril de 2002, que en només un més de diferència es va tenir una gran entrada turística el març i una baixa entrada turísica l'abril. Per últim, cal remarcar un *outlier* de tipus LS a l'octubre de 2001, que també fa que des de llavors la sèrie prengui valors inferiors.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##Efecto de los at?picos en la serie de logaritmos
 plot(logserie-logserie.lin)
 ```
@@ -753,7 +820,7 @@ es confirma la hipòtesi que el model adequat és un AR(2).
 
 Pel que fa a la part estacional, l'anàlisi és molt semblant al de la sèrie sense linealitzar: un ACF amb força valors fora de la banda de confiança, sobretot el quart valor (molt més que el primer) i un PACF on es podrien considerar significatius el primer, el tercer i el quart valor. Per tant, igual que en el cas de la sèrie sense linealitzar, proposem un AR(4) per la part estacional.
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##Identificació del model per la sèrie linealitzada
 d1d12logserie.lin=diff(diff(logserie.lin,12))
 par(mfrow=c(1,2))
@@ -764,7 +831,7 @@ par(mfrow=c(1,1))
 
 Ara bé, a diferència del que s'ha vist anteriorment, en aquest cas surten no significatius tant el coeficient de $\texttt{sar2}$ com el de $\texttt{sar3}$
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##Estimació del model per la sèrie linealitzada
 (mod.lin=arima(logserie.lin,order=pdq.1,seasonal=list(order=PDQ.2,period=12)))
 abs(mod.lin$coef/sqrt(diag(mod.lin$var.coef)))>2
@@ -783,7 +850,7 @@ Pel que fa a la validació del model per la sèrie linealitzada, s'observa en le
 Per tant, es conclou que el model per la sèrie linealitzada és un model vàlid.
 
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 dades=d1d12logserie.lin
 model=mod.lin
 source("validation.r")
@@ -794,7 +861,7 @@ validation(model,dades)
 
 En relació a l'estabilitat del model per la sèrie linealitzada, s'observa que el valor dels coeficients varia molt poc, de l'ordre de menys de 0.02 en gairebé tots els casos. Per tant, podem confirmar que és estable.
 
-```{r echo = FALSE, warning=FALSE}
+```{r, fig.align="center",  echo = FALSE, warning=FALSE}
 ultim=c(2017,12)
 
 serie1.lin=window(serie.lin,end=ultim+c(1,0))
@@ -810,7 +877,7 @@ logserie2.lin=log(serie2.lin)
 
 Pel que fa a la capacitat de predicció del model per la sèrie linealitzada, es pot observar que és millor que el model per la sèrie sense linealitzar, ja que s'ajusta molt més (de fet, tenim tant el EQM com el EAM més baix en aquest cas). De fet, en les zones de pujada i baixada els intervals de confiança estan gairebé a sobre del valor real de la sèrie. En els valors més alts és on es té més error, fet que no extranya, ja que és en els mesos de l'any on més ha anat variant el valor de la sèrie al llarg dels anys
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 pred=predict(mod2.lin,n.ahead=12)
 wLS=sum(mod.outliers$atip[mod.outliers$atip$type_detected=="LS" & mod.outliers$atip$Obs<=length(serie)-12,3])
 predic=pred$pr+wLS
@@ -826,11 +893,11 @@ ts.plot(serie,tl,tu,pr,lty=c(1,2,2,1),col=c(1,4,4,2),xlim=ultim[1]+c(-3,+2),type
 abline(v=(ultim[1]-3):(ultim[1]+2),lty=3,col=4)
 ```
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 (previs.lin=window(cbind(tl,pr,tu,serie,error=round(serie-pr,3)),start=ultim))
 ```
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 obs=window(serie,start=ultim)
 (mod.EQM2=sqrt(sum(((obs-pr)/obs)^2)/12))
 (mod.EAM2=sum(abs(obs-pr)/obs)/12)
@@ -838,19 +905,19 @@ obs=window(serie,start=ultim)
 
 ## Previsions a llarg termini pel model proposat per la sèrie linealitzada
 
-```{r echo = FALSE}
+```{r, fig.align="center",  echo = FALSE}
 ##### Previsions a llarg termini amb el model complet ######
 
 pred=predict(mod.lin,n.ahead=12)
 wLS=sum(mod.outliers$atip[mod.outliers$atip$type_detected=="LS",3])
 predic=pred$pr+wLS
-pr<-ts(c(logserie[length(logserie)],predic),start=ultim+c(1,0),freq=12)
-se<-ts(c(0,pred$se),start=ultim+c(1,0),freq=12)
+pr<-ts(c(logserie[length(logserie)],predic),start=ultim+c(1,-1),freq=12)
+se<-ts(c(0,pred$se),start=ultim+c(1,-1),freq=12)
 
 #Intervals
-tl2<-ts(exp(pr-1.96*se),start=ultim+c(1,0),freq=12)
-tu2<-ts(exp(pr+1.96*se),start=ultim+c(1,0),freq=12)
-pr2<-ts(exp(pr),start=ultim+c(1,0),freq=12)
+tl2<-ts(exp(pr-1.96*se),start=ultim+c(1,-1),freq=12)
+tu2<-ts(exp(pr+1.96*se),start=ultim+c(1,-1),freq=12)
+pr2<-ts(exp(pr),start=ultim+c(1,-1),freq=12)
 
 ts.plot(serie,tl2,tu2,pr2,lty=c(1,2,2,1),col=c(1,4,4,2),xlim=ultim[1]+c(-1,+3),type="o",main="Model ARIMA(2,1,0)(4,1,0)12")
 abline(v=(ultim[1]-2):(ultim[1]+3),lty=3,col=4)
@@ -860,13 +927,13 @@ abline(v=(ultim[1]-2):(ultim[1]+3),lty=3,col=4)
 
 Com a última part d'aquest anàlisi, es realitza una comparació entre els valors predits pel model per la sèrie sense linealitzar i els valors predits per la sèrie linealitzada (és a dir, sense *outliers*). Tot i que els valors són força semblants, el que crida més l'atenció és que l'interval de confiança d'aquests valors és més estret en el cas del model per la sèrie linealitzada. Aquest fet es deu a que la variància dels valors sense *outliers* és molt més petita i, per tant, hi ha més marge d'acotació a l'hora de calcular tant els valors com els intervals. Per tant, podem dir que el model sense *outliers* és millor
 
-```{r echo = FALSE}
-(previs2=window(cbind(tl2,pr2,tu2),start=ultim+c(1,0)))
-
-cbind(previs1,previs2)
+```{r, fig.align="center",  echo = FALSE}
+previs2=window(cbind(tl2,pr2,tu2),start=ultim+c(1,-1))
+previs1
+previs2
 ```
 
-```{r echo = FALSE}
+```{r, fig.align="center", , fig.align="center",  echo = FALSE}
 ts.plot(serie,tl1,tu1,pr1,tl2,tu2,pr2,lty=c(1,2,2,1,2,2,1),col=c(1,4,4,2,3,3,6),xlim=ultim[1]+c(1,3),type="o",main="Entrada Turística a Espanya")
 legend("topleft",c("ARIMA(2,1,0)(4,1,0)12","ARIMA(2,1,0)(4,1,0)12 with outlier treatment"),col=c(4,3),lty=1,lwd=2)
 abline(v=ultim[1]+1:3,lty=3,col=4)
@@ -875,7 +942,7 @@ abline(v=ultim[1]+1:3,lty=3,col=4)
 Per acabar de confirmar-ho, es mostren tota una sèrie de mesures de bondat d'ajust dels models. Sobretot ens crida l'atenció el *AIC* i el *BIC*, on el model 
 sense *outliers* és clarament millor. Aquest model també té millor RMSPE i MAPE.
 
-```{r echo = FALSE}
+```{r, fig.align="center", echo = FALSE}
 resul=data.frame(
   par=c(length(coef(mod)),length(coef(mod.lin))+nrow(mod.outliers$atip)),
   Sigma2Z=c(mod$sigma2,mod.lin$sigma2),
